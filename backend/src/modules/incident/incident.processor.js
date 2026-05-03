@@ -1,5 +1,6 @@
 import { getOpenIncident, createIncident, resolveIncident } from "./incident.service.js";
 import { triggerAlert } from "../alert/alert.service.js";
+import { processIncident } from "./incident.processor.ai.js";
 
 const FAILURE_THRESHOLD = 3;
 
@@ -18,6 +19,9 @@ export const handleFailure = async (monitorId) => {
     if (!existing) {
       console.log("🚨 Incident Created");
       const newIncident = await createIncident({ monitorId, failCount: count });
+
+      // 🧠 AI TRIGGER (NEW)
+      await processIncident(newIncident);
 
       await triggerAlert({
         monitorId,

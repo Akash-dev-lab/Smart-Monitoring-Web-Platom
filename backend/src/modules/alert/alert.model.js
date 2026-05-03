@@ -19,6 +19,12 @@ const alertSchema = new mongoose.Schema({
     enum: ["SENT", "FAILED"],
   },
   message: String,
+
+   ai: {
+    status: String,
+    reason: String,
+    suggestion: [String],
+  }
 }, { timestamps: true });
 
 export default mongoose.model("Alert", alertSchema);
