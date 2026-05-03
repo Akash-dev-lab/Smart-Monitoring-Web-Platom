@@ -1,24 +1,28 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const monitorSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     url: {
       type: String,
-      required: true
+      required: true,
     },
     method: {
       type: String,
-      default: "GET"
+      default: 'GET',
     },
     interval: {
       type: Number,
-      default: 60000
+      default: 60000,
     }, // ms (60s)
     active: {
       type: Boolean,
-      default: true
-    }
-    // later: userId, regions, headers, auth, etc.
+      default: true,
+    },
   },
   { timestamps: true }
 );
@@ -26,4 +30,4 @@ const monitorSchema = new mongoose.Schema(
 // fast lookup by activity
 monitorSchema.index({ active: 1 });
 
-export default mongoose.model("Monitor", monitorSchema);
+export default mongoose.model('Monitor', monitorSchema);

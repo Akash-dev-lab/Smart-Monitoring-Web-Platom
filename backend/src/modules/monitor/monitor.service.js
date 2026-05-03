@@ -9,16 +9,25 @@ export const getActiveMonitors = async () => {
 };
 
 // 🔥 GET ALL
-export const getAllMonitors = async () => {
+export const getAllMonitors = async (userId) => {
+  return await Monitor.find({ userId }).sort({ createdAt: -1 });
+};
+
+// ✅ ADMIN GET ALL
+export const getAllMonitorsAdmin = async () => {
   return await Monitor.find().sort({ createdAt: -1 });
 };
 
 // 🔥 UPDATE
-export const updateMonitorById = async (id, data) => {
-  return await Monitor.findByIdAndUpdate(id, data, { new: true });
+export const updateMonitorById = async (id, userId, data) => {
+  return await Monitor.findOneAndUpdate(
+    { _id: id, userId },
+    data,
+    { new: true }
+  );
 };
 
 // 🔥 DELETE
-export const deleteMonitorById = async (id) => {
-  return await Monitor.findByIdAndDelete(id);
+export const deleteMonitorById = async (id, userId) => {
+  return await Monitor.findOneAndDelete({ _id: id, userId });
 };
