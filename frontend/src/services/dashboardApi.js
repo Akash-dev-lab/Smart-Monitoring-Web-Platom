@@ -1,19 +1,103 @@
 import axiosInstance from './axiosInstance';
 import { API_BASE_URL } from './apiConfig';
 
+/**
+ * Format AI insights for display
+ * Converts suggestion string/array to array format
+ */
+const formatAIInsight = (insight) => {
+  if (!insight) return null;
+
+  // Handle suggestion field - convert to array if string
+  let suggestions = [];
+  if (insight.suggestion) {
+    if (Array.isArray(insight.suggestion)) {
+      suggestions = insight.suggestion;
+    } else if (typeof insight.suggestion === 'string') {
+      // Split by newlines or bullet points
+      suggestions = insight.suggestion
+        .split(/[\n•-]/)
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+  }
+
+  return {
+    ...insight,
+    suggestions,
+    isCritical: insight.severity === 'critical' || insight.priority === 'high',
+  };
+};
+
+/**
+ * Fetch dashboard summary statistics
+ * GET /dashboard/summary
+ * 
+ * Fallback: Calculate from monitors if API fails
+ */
 export const getDashboardSummary = async () => {
-  const { data } = await axiosInstance.get('/dashboard/summary');
-  return data;
+  try {
+    const { data } = await axiosInstance.get('/dashboard/summary');
+    return data;
+  } catch (error) {
+    // Fallback: Return null, let Redux calculate from monitors
+    console.warn('Dashboard summary API failed, will calculate from monitors:', error.message);
+    return null;
+  }
 };
 
+/**
+ * Fetch incident timeline for a monitor
+ * GET /dashboard/incidents/:monitorId
+ */
 export const getIncidentTimeline = async (monitorId) => {
-  const { data } = await axiosInstance.get(`/dashboard/incidents/${monitorId}`);
-  return data;
+  try {
+    const { data } = await axiosInstance.get(`/dashboard/incidents/${monitorId}`);
+    const incidents = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+    return incidents;
+  } catch (error) {
+    console.warn(`Failed to fetch incidents for monitor ${monitorId}:`, error.message);
+    return [];
+  }
 };
 
+/**
+ * Fetch AI insights for a monitor
+ * GET /ai/insights/:monitorId
+ */
 export const getAIInsights = async (monitorId) => {
-  const { data } = await axiosInstance.get(`/dashboard/ai/${monitorId}`);
-  return data;
+  try {
+    const { data } = await axiosInstance.get(`/ai/insights/${monitorId}`);
+    const insights = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+    return insights.map(formatAIInsight).filter(Boolean);
+  } catch (error) {
+    console.warn(`Failed to fetch AI insights for monitor ${monitorId}:`, error.message);
+    return [];
+  }
+};
+
+/**
+ * Fetch both incidents and AI insights together
+ * Used by Redux thunk for efficiency
+ */
+export const getIncidentDetails = async (monitorId) => {
+  try {
+    const [incidents, aiInsights] = await Promise.all([
+      getIncidentTimeline(monitorId),
+      getAIInsights(monitorId),
+    ]);
+
+    return {
+      incidents,
+      aiInsights,
+    };
+  } catch (error) {
+    console.warn(`Failed to fetch incident details for monitor ${monitorId}:`, error.message);
+    return {
+      incidents: [],
+      aiInsights: [],
+    };
+  }
 };
 
 export const getApiBaseUrl = () => API_BASE_URL;

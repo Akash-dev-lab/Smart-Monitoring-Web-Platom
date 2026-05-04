@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getAIInsights, getDashboardSummary, getIncidentTimeline } from '../services/dashboardApi';
+import { getDashboardSummary, getIncidentDetails } from '../services/dashboardApi';
 import { getMonitorAnalytics } from '../services/logApi';
 import {
   createMonitor,
@@ -8,87 +8,177 @@ import {
   updateMonitor,
 } from '../services/monitorApi';
 
-export const fetchMonitors = createAsyncThunk('dashboard/fetchMonitors', getMonitors);
+/**
+ * Fetch all monitors from backend
+ */
+export const fetchMonitors = createAsyncThunk(
+  'dashboard/fetchMonitors',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getMonitors();
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
-export const fetchDashboardSummary = createAsyncThunk('dashboard/fetchDashboardSummary', getDashboardSummary);
+/**
+ * Fetch dashboard summary statistics
+ * Falls back to calculating from monitors if API fails
+ */
+export const fetchDashboardSummary = createAsyncThunk(
+  'dashboard/fetchDashboardSummary',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const summary = await getDashboardSummary();
+      
+      // If API returns null (failed), calculate from monitors
+      if (!summary) {
+        const { monitors } = getState().dashboard;
+        const activeCount = monitors.filter(m => m.active).length;
+        
+        return {
+          totalMonitors: monitors.length,
+          activeMonitors: activeCount,
+          pausedMonitors: monitors.length - activeCount,
+          totalIncidents: 0, // Can't calculate without incident data
+          averageUptime: 0,  // Can't calculate without analytics data
+        };
+      }
+      
+      return summary;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
+/**
+ * Fetch analytics for all monitors
+ * Returns empty structure for monitors with no data
+ */
 export const fetchAnalytics = createAsyncThunk(
   'dashboard/fetchAnalytics',
-  async (_, { getState }) => {
-    const { monitors } = getState().dashboard;
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { monitors } = getState().dashboard;
 
-    if (monitors.length === 0) {
-      return {};
+      if (monitors.length === 0) {
+        return {};
+      }
+
+      const entries = await Promise.all(
+        monitors.map(async (monitor) => {
+          const analytics = await getMonitorAnalytics(monitor.id);
+          return [monitor.id, analytics];
+        }),
+      );
+
+      return Object.fromEntries(entries);
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
-
-    const entries = await Promise.all(
-      monitors.map(async (monitor) => {
-        const analytics = await getMonitorAnalytics(monitor.id);
-        return [monitor.id, analytics];
-      }),
-    );
-
-    return Object.fromEntries(entries);
   },
 );
 
+/**
+ * Fetch incidents and AI insights for all monitors
+ * Returns empty arrays for monitors with no data
+ */
 export const fetchIncidentDetails = createAsyncThunk(
   'dashboard/fetchIncidentDetails',
-  async (_, { getState }) => {
-    const { monitors } = getState().dashboard;
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { monitors } = getState().dashboard;
 
-    if (monitors.length === 0) {
-      return {
+      if (monitors.length === 0) {
+        return {
+          aiInsightsByMonitorId: {},
+          incidentsByMonitorId: {},
+        };
+      }
+
+      const entries = await Promise.all(
+        monitors.map(async (monitor) => {
+          const details = await getIncidentDetails(monitor.id);
+          return [monitor.id, details];
+        }),
+      );
+
+      return entries.reduce((data, [monitorId, details]) => {
+        data.incidentsByMonitorId[monitorId] = details.incidents;
+        data.aiInsightsByMonitorId[monitorId] = details.aiInsights;
+        return data;
+      }, {
         aiInsightsByMonitorId: {},
         incidentsByMonitorId: {},
-      };
+      });
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
-
-    const entries = await Promise.all(
-      monitors.map(async (monitor) => {
-        const [incidents, aiInsights] = await Promise.all([
-          getIncidentTimeline(monitor.id),
-          getAIInsights(monitor.id),
-        ]);
-
-        return [monitor.id, { incidents, aiInsights }];
-      }),
-    );
-
-    return entries.reduce((data, [monitorId, details]) => {
-      data.incidentsByMonitorId[monitorId] = Array.isArray(details.incidents) ? details.incidents : [];
-      data.aiInsightsByMonitorId[monitorId] = Array.isArray(details.aiInsights) ? details.aiInsights : [];
-      return data;
-    }, {
-      aiInsightsByMonitorId: {},
-      incidentsByMonitorId: {},
-    });
   },
 );
 
-export const createMonitorRecord = createAsyncThunk('dashboard/createMonitor', createMonitor);
+/**
+ * Create a new monitor
+ */
+export const createMonitorRecord = createAsyncThunk(
+  'dashboard/createMonitor',
+  async (monitorData, { rejectWithValue }) => {
+    try {
+      return await createMonitor(monitorData);
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
+/**
+ * Update an existing monitor
+ */
 export const updateMonitorRecord = createAsyncThunk(
   'dashboard/updateMonitor',
-  async ({ id, data }) => updateMonitor(id, data),
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      return await updateMonitor(id, data);
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
 );
 
+/**
+ * Delete a monitor
+ */
 export const deleteMonitorRecord = createAsyncThunk(
   'dashboard/deleteMonitor',
-  async (id) => {
-    await deleteMonitor(id);
-    return id;
+  async (id, { rejectWithValue }) => {
+    try {
+      await deleteMonitor(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
   },
 );
 
+/**
+ * Toggle monitor active/paused status
+ */
 export const toggleMonitorRecord = createAsyncThunk(
   'dashboard/toggleMonitor',
-  async (monitor) => updateMonitor(monitor.id, {
-    url: monitor.url,
-    method: monitor.method,
-    interval: monitor.interval,
-    active: !monitor.active,
-  }),
+  async (monitor, { rejectWithValue }) => {
+    try {
+      return await updateMonitor(monitor.id, {
+        url: monitor.url,
+        method: monitor.method,
+        interval: monitor.interval,
+        active: !monitor.active,
+      });
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
 );
 
 const initialState = {
@@ -129,7 +219,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchMonitors.rejected, (state, action) => {
         state.isLoadingMonitors = false;
-        state.monitorError = action.error.message || 'Unable to load monitors';
+        state.monitorError = action.payload || action.error.message || 'Unable to load monitors';
       })
       .addCase(fetchAnalytics.pending, (state) => {
         state.isLoadingAnalytics = true;
@@ -141,7 +231,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchAnalytics.rejected, (state, action) => {
         state.isLoadingAnalytics = false;
-        state.analyticsError = action.error.message || 'Unable to load log analytics';
+        state.analyticsError = action.payload || action.error.message || 'Unable to load log analytics';
       })
       .addCase(fetchIncidentDetails.pending, (state) => {
         state.isLoadingIncidentDetails = true;
@@ -154,7 +244,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchIncidentDetails.rejected, (state, action) => {
         state.isLoadingIncidentDetails = false;
-        state.incidentDetailsError = action.error.message || 'Unable to load AI incident details';
+        state.incidentDetailsError = action.payload || action.error.message || 'Unable to load AI incident details';
       })
       .addCase(fetchDashboardSummary.pending, (state) => {
         state.isLoadingDashboardSummary = true;
@@ -166,7 +256,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardSummary.rejected, (state, action) => {
         state.isLoadingDashboardSummary = false;
-        state.dashboardSummaryError = action.error.message || 'Unable to load dashboard summary';
+        state.dashboardSummaryError = action.payload || action.error.message || 'Unable to load dashboard summary';
       })
       .addCase(createMonitorRecord.pending, (state) => {
         state.isSavingMonitor = true;
@@ -178,7 +268,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(createMonitorRecord.rejected, (state, action) => {
         state.isSavingMonitor = false;
-        state.monitorError = action.error.message || 'Unable to create monitor';
+        state.monitorError = action.payload || action.error.message || 'Unable to create monitor';
       })
       .addCase(updateMonitorRecord.pending, (state) => {
         state.isSavingMonitor = true;
@@ -192,7 +282,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(updateMonitorRecord.rejected, (state, action) => {
         state.isSavingMonitor = false;
-        state.monitorError = action.error.message || 'Unable to update monitor';
+        state.monitorError = action.payload || action.error.message || 'Unable to update monitor';
       })
       .addCase(toggleMonitorRecord.pending, (state) => {
         state.isSavingMonitor = true;
@@ -206,7 +296,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(toggleMonitorRecord.rejected, (state, action) => {
         state.isSavingMonitor = false;
-        state.monitorError = action.error.message || 'Unable to update monitor';
+        state.monitorError = action.payload || action.error.message || 'Unable to update monitor';
       })
       .addCase(deleteMonitorRecord.pending, (state, action) => {
         state.deletingMonitorId = action.meta.arg;
@@ -218,7 +308,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(deleteMonitorRecord.rejected, (state, action) => {
         state.deletingMonitorId = null;
-        state.monitorError = action.error.message || 'Unable to delete monitor';
+        state.monitorError = action.payload || action.error.message || 'Unable to delete monitor';
       });
   },
 });
