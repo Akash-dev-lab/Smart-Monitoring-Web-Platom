@@ -41,7 +41,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Routes
-app.use("/auth", authRoutes);
+app.use("/api/v1/auth", authRoutes);
 app.use("/logs", logRoutes);
 app.use("/ai", aiRoutes);
 app.use("/monitors", monitorRoutes);
