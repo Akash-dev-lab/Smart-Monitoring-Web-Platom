@@ -1,5 +1,3 @@
-// src/modules/dashboard/dashboard.routes.js
-
 import express from "express";
 import {
   getDashboardSummary,
