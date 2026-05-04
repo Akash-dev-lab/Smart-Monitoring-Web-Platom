@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import logRoutes from "./modules/logs/log.routes.js";
 import monitorRoutes from "./modules/monitor/monitor.routes.js";
 import aiRoutes from "./modules/ai/ai.routes.js";
@@ -28,6 +29,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/logs", logRoutes);
