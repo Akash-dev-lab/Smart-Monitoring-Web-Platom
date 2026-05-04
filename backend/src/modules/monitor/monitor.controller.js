@@ -1,10 +1,13 @@
 import { createMonitor, getAllMonitors, updateMonitorById, deleteMonitorById } from "./monitor.service.js";
 
+const getAuthenticatedUserId = (req) => req.user?._id?.toString?.() || req.user?.userId || null;
+
 export const createMonitorController = async (req, res) => {
   try {
     const { url, method, interval } = req.body;
+    const userId = getAuthenticatedUserId(req);
 
-    const monitor = await createMonitor({ url, method, interval, userId: req.user.userId });
+    const monitor = await createMonitor({ url, method, interval, userId });
     res.status(201).json(monitor);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -13,7 +16,7 @@ export const createMonitorController = async (req, res) => {
 
 export const getAllMonitorsController = async (req, res) => {
   try {
-    const monitors = await getAllMonitors(req.user.userId);
+    const monitors = await getAllMonitors(getAuthenticatedUserId(req));
 
     res.json({
       success: true,
@@ -29,8 +32,9 @@ export const getAllMonitorsController = async (req, res) => {
 export const updateMonitorController = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = getAuthenticatedUserId(req);
 
-    const updated = await updateMonitorById(id, req.user.userId, req.body);
+    const updated = await updateMonitorById(id, userId, req.body);
 
     if (!updated) {
       return res.status(404).json({ error: "Monitor not found or unauthorized" });
@@ -46,8 +50,9 @@ export const updateMonitorController = async (req, res) => {
 export const deleteMonitorController = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = getAuthenticatedUserId(req);
 
-    const deleted = await deleteMonitorById(id, req.user.userId);
+    const deleted = await deleteMonitorById(id, userId);
 
     if (!deleted) {
       return res.status(404).json({ error: "Monitor not found or unauthorized" });

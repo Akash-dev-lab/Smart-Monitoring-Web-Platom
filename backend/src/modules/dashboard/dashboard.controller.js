@@ -3,13 +3,30 @@ import Log from "../logs/log.model.js";
 import Incident from "../incident/incident.model.js";
 import AIInsight from "../ai/ai.model.js";
 
+const getAuthenticatedUserId = (req) => req.user?._id?.toString?.() || req.user?.userId || null;
+
+const getOwnedMonitor = async (req, monitorId) => {
+  const userId = getAuthenticatedUserId(req);
+  return Monitor.findOne({ _id: monitorId, userId });
+};
+
 export const getDashboardSummary = async (req, res) => {
   try {
-    const totalMonitors = await Monitor.countDocuments();
-    const activeIncidents = await Incident.countDocuments({ status: "OPEN" });
+    const userId = getAuthenticatedUserId(req);
+    const monitors = await Monitor.find({ userId }).select("_id");
+    const monitorIds = monitors.map((monitor) => monitor._id);
 
-    const totalLogs = await Log.countDocuments();
-    const successLogs = await Log.countDocuments({ success: true });
+    const totalMonitors = monitorIds.length;
+    const activeIncidents = await Incident.countDocuments({
+      monitorId: { $in: monitorIds },
+      status: "OPEN"
+    });
+
+    const totalLogs = await Log.countDocuments({ monitorId: { $in: monitorIds } });
+    const successLogs = await Log.countDocuments({
+      monitorId: { $in: monitorIds },
+      success: true
+    });
 
     const uptime = totalLogs
       ? ((successLogs / totalLogs) * 100).toFixed(2)
@@ -28,7 +45,9 @@ export const getDashboardSummary = async (req, res) => {
 
 export const getAllMonitorsDashboard = async (req, res) => {
   try {
-    const monitors = await Monitor.find().sort({ createdAt: -1 });
+    const monitors = await Monitor.find({
+      userId: getAuthenticatedUserId(req)
+    }).sort({ createdAt: -1 });
 
     res.json(monitors);
 
@@ -40,6 +59,11 @@ export const getAllMonitorsDashboard = async (req, res) => {
 export const getIncidentTimeline = async (req, res) => {
   try {
     const { monitorId } = req.params;
+    const monitor = await getOwnedMonitor(req, monitorId);
+
+    if (!monitor) {
+      return res.status(404).json({ error: "Monitor not found" });
+    }
 
     const incidents = await Incident.find({ monitorId })
       .sort({ createdAt: -1 });
@@ -54,6 +78,11 @@ export const getIncidentTimeline = async (req, res) => {
 export const getAIInsights = async (req, res) => {
   try {
     const { monitorId } = req.params;
+    const monitor = await getOwnedMonitor(req, monitorId);
+
+    if (!monitor) {
+      return res.status(404).json({ error: "Monitor not found" });
+    }
 
     const insights = await AIInsight.find({ monitorId })
       .sort({ createdAt: -1 });
@@ -68,6 +97,11 @@ export const getAIInsights = async (req, res) => {
 export const getMonitorAnalytics = async (req, res) => {
   try {
     const { monitorId } = req.params;
+    const monitor = await getOwnedMonitor(req, monitorId);
+
+    if (!monitor) {
+      return res.status(404).json({ error: "Monitor not found" });
+    }
 
     const logs = await Log.find({ monitorId })
       .sort({ createdAt: -1 })
