@@ -8,8 +8,22 @@ import authRoutes from "./modules/auth/auth.routes.js";
 
 const app = express();
 
+const configuredOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const localViteOrigin = /^http:\/\/(localhost|127\.0\.0\.1):517\d$/;
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin(origin, callback) {
+    if (!origin || configuredOrigins.includes(origin) || localViteOrigin.test(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
 };
 

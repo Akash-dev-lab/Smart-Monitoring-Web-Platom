@@ -3,6 +3,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 const HomePage = lazy(() => import('./pages/home').then((module) => ({ default: module.HomePage })));
 const DashboardPage = lazy(() => import('./pages/dashboard').then((module) => ({ default: module.DashboardPage })));
+const SignInPage = lazy(() => import('./pages/auth').then((module) => ({ default: module.SignInPage })));
+const SignUpPage = lazy(() => import('./pages/auth').then((module) => ({ default: module.SignUpPage })));
+const ProtectedRoute = lazy(() => import('./pages/auth').then((module) => ({ default: module.ProtectedRoute })));
 
 const SkeletonBlock = ({ className = '' }) => (
   <div className={`animate-pulse rounded-xl border-[3px] border-black bg-white/70 ${className}`} />
@@ -60,8 +63,17 @@ const App = () => {
     <Suspense fallback={<AppSkeleton />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/signin" element={<SignInPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
         <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
-        <Route path="/dashboard/:view" element={<DashboardPage />} />
+        <Route
+          path="/dashboard/:view"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
