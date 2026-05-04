@@ -24,20 +24,24 @@ export const login = async (req, res) => {
   try {
     const { user, accessToken, refreshToken } = await loginUser(req.body);
 
-    // Set HTTP-only cookies
-    res.cookie("accessToken", accessToken, {
+    // Cookie settings for cross-origin (Vercel → Render)
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true, // Always true for production (HTTPS required)
+      sameSite: "none", // Required for cross-origin cookies
       maxAge: 60 * 60 * 1000, // 1 hour
-    });
+    };
 
-    res.cookie("refreshToken", refreshToken, {
+    const refreshCookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    };
+
+    // Set HTTP-only cookies
+    res.cookie("accessToken", accessToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     res.json({
       message: "Login successful",
@@ -64,11 +68,11 @@ export const refresh = async (req, res) => {
 
     const data = await refreshAccessToken(refreshToken);
 
-    // Set new access token cookie
+    // Set new access token cookie with cross-origin settings
     res.cookie("accessToken", data.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       maxAge: 60 * 60 * 1000, // 1 hour
     });
 
@@ -83,9 +87,18 @@ export const logout = async (req, res) => {
   try {
     await logoutUser(req.user.userId);
 
-    // Clear cookies
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
+    // Clear cookies with same settings used to set them
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+    
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
 
     res.json({ message: "Logged out successfully" });
   } catch (err) {
