@@ -9,32 +9,62 @@ import authRoutes from "./modules/auth/auth.routes.js";
 
 const app = express();
 
-const configuredOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+// CORS Configuration
+const allowedOrigins = (process.env.FRONTEND_URL || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const localViteOrigin = /^http:\/\/(localhost|127\.0\.0\.1):517\d$/;
-
 const corsOptions = {
-  origin(origin, callback) {
-    if (!origin || configuredOrigins.includes(origin) || localViteOrigin.test(origin)) {
-      callback(null, true);
-      return;
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) {
+      return callback(null, true);
     }
 
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Reject all other origins
     callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+// Middleware
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
+
+// Routes
 app.use("/auth", authRoutes);
 app.use("/logs", logRoutes);
 app.use("/ai", aiRoutes);
 app.use("/monitors", monitorRoutes);
 app.use("/dashboard", dashboardRoutes);
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    message: "Smart Monitoring API is running",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: err.message || "Internal server error" });
+});
 
 export default app;
