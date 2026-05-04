@@ -4,6 +4,7 @@ import { API_BASE_URL } from './apiConfig';
 /**
  * Format AI insights for display
  * Converts suggestion string/array to array format
+ * Cleans markdown symbols and formatting
  */
 const formatAIInsight = (insight) => {
   if (!insight) return null;
@@ -22,9 +23,20 @@ const formatAIInsight = (insight) => {
     }
   }
 
+  // Clean markdown symbols from suggestions
+  const cleanedSuggestions = suggestions.map(suggestion => 
+    suggestion
+      .replace(/^\*\*|\*\*$/g, '') // Remove ** from start/end
+      .replace(/^\*|\*$/g, '')     // Remove * from start/end
+      .replace(/^-\s*/, '')        // Remove leading dash
+      .replace(/^•\s*/, '')        // Remove leading bullet
+      .replace(/^\d+\.\s*/, '')    // Remove leading numbers (1. 2. etc)
+      .trim()
+  ).filter(Boolean);
+
   return {
     ...insight,
-    suggestions,
+    suggestions: cleanedSuggestions,
     isCritical: insight.severity === 'critical' || insight.priority === 'high',
   };
 };

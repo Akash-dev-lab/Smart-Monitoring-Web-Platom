@@ -4,7 +4,7 @@ import { ArrowRight, LockKeyhole, Mail, UserRoundPlus } from 'lucide-react';
 import AuthLayout from './AuthLayout';
 import AuthPanel from './AuthPanel';
 import FormField from './FormField';
-import { register } from '../../services/authApi';
+import { register, setCurrentUser } from '../../services/authApi';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -22,8 +22,15 @@ const SignUpPage = () => {
     const password = formData.get('password');
 
     try {
-      await register({ name, email, password });
-      navigate('/signin');
+      const response = await register({ name, email, password });
+      
+      // Save user to localStorage
+      if (response.user) {
+        setCurrentUser(response.user);
+      }
+      
+      // Redirect to dashboard
+      navigate('/dashboard/overview');
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Registration failed');
     } finally {

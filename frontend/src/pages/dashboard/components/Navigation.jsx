@@ -1,68 +1,109 @@
-import { ShieldCheck, X } from 'lucide-react';
+import { LogOut, ShieldCheck, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { logout, setCurrentUser } from '../../../services/authApi';
 import { navItems } from '../dashboardData';
 
-export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, onViewChange }) => (
-  <div className="flex h-full flex-col">
-    <div className={`flex items-center ${compact ? 'justify-center' : 'justify-between gap-3'}`}>
-      <button
-        type="button"
-        onClick={compact ? onOpen : undefined}
-        className={`flex min-w-0 items-center gap-3 ${compact ? 'justify-center' : 'cursor-default'}`}
-        aria-label={compact ? 'Open sidebar' : 'Drishyam Monitor OS'}
-      >
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-[3px] border-black bg-[#FFD600] font-black italic text-black shadow-[4px_4px_0_#0F172A]">
-          D
-        </span>
-        {!compact && (
-          <span className="min-w-0 text-black">
-            <span className="block truncate text-lg font-black uppercase italic leading-none">Drishyam</span>
-            <span className="text-xs font-bold uppercase tracking-[0.18em] text-black/55">Monitor OS</span>
-          </span>
-        )}
-      </button>
-      {!compact && (
-        <button
-          className="grid h-10 w-10 place-items-center rounded-xl border-[3px] border-black bg-white text-black shadow-[3px_3px_0_#0F172A]"
-          onClick={onClose}
-          aria-label="Close sidebar"
-        >
-          <X size={18} strokeWidth={3} />
-        </button>
-      )}
-    </div>
+export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, onViewChange }) => {
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    <nav className="mt-10 grid gap-2">
-      {navItems.map(({ id, label, icon: Icon }) => (
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      setCurrentUser(null);
+      navigate('/signin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Even if logout fails, clear local state and redirect
+      setCurrentUser(null);
+      navigate('/signin');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className={`flex items-center ${compact ? 'justify-center' : 'justify-between gap-3'}`}>
         <button
-          key={id}
           type="button"
-          onClick={() => onViewChange(id)}
-          className={`flex h-12 items-center rounded-2xl border-[3px] border-black font-black ${
-            compact ? 'justify-center px-0' : 'gap-3 px-3'
-          } ${
-            activeView === id
-              ? 'bg-[#1E6BFF] text-white shadow-[4px_4px_0_#0F172A]'
-              : 'bg-[#FDFBF7] text-black hover:bg-[#FFD600]'
-          }`}
-          title={label}
+          onClick={compact ? onOpen : undefined}
+          className={`flex min-w-0 items-center gap-3 ${compact ? 'justify-center' : 'cursor-default'}`}
+          aria-label={compact ? 'Open sidebar' : 'Drishyam Monitor OS'}
         >
-          <Icon size={19} strokeWidth={3} />
-          {!compact && <span className="text-sm">{label}</span>}
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-[3px] border-black bg-[#FFD600] font-black italic text-black shadow-[4px_4px_0_#0F172A]">
+            D
+          </span>
+          {!compact && (
+            <span className="min-w-0 text-black">
+              <span className="block truncate text-lg font-black uppercase italic leading-none">Drishyam</span>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-black/55">Monitor OS</span>
+            </span>
+          )}
         </button>
-      ))}
-    </nav>
-
-    <div className={`mt-auto rounded-2xl border-[3px] border-black bg-[#FDFBF7] p-4 text-black ${compact ? 'hidden' : 'block'}`}>
-      <div className="flex items-center gap-2 text-sm font-black">
-        <ShieldCheck size={18} className="text-[#1E6BFF]" />
-        Monitors synced
+        {!compact && (
+          <button
+            className="grid h-10 w-10 place-items-center rounded-xl border-[3px] border-black bg-white text-black shadow-[3px_3px_0_#0F172A]"
+            onClick={onClose}
+            aria-label="Close sidebar"
+          >
+            <X size={18} strokeWidth={3} />
+          </button>
+        )}
       </div>
-      <p className="mt-2 text-sm leading-6 text-black/60">
-        Monitor records load from the backend and actions update the same source.
-      </p>
+
+      <nav className="mt-10 grid gap-2">
+        {navItems.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onViewChange(id)}
+            className={`flex h-12 items-center rounded-2xl border-[3px] border-black font-black ${
+              compact ? 'justify-center px-0' : 'gap-3 px-3'
+            } ${
+              activeView === id
+                ? 'bg-[#1E6BFF] text-white shadow-[4px_4px_0_#0F172A]'
+                : 'bg-[#FDFBF7] text-black hover:bg-[#FFD600]'
+            }`}
+            title={label}
+          >
+            <Icon size={19} strokeWidth={3} />
+            {!compact && <span className="text-sm">{label}</span>}
+          </button>
+        ))}
+      </nav>
+
+      <div className="mt-auto space-y-3">
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className={`flex h-12 w-full items-center rounded-2xl border-[3px] border-black font-black ${
+            compact ? 'justify-center px-0' : 'gap-3 px-3'
+          } bg-red-500 text-white shadow-[4px_4px_0_#0F172A] hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60`}
+          title="Logout"
+        >
+          <LogOut size={19} strokeWidth={3} />
+          {!compact && <span className="text-sm">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
+        </button>
+
+        <div className={`rounded-2xl border-[3px] border-black bg-[#FDFBF7] p-4 text-black ${compact ? 'hidden' : 'block'}`}>
+          <div className="flex items-center gap-2 text-sm font-black">
+            <ShieldCheck size={18} className="text-[#1E6BFF]" />
+            Monitors synced
+          </div>
+          <p className="mt-2 text-sm leading-6 text-black/60">
+            Monitor records load from the backend and actions update the same source.
+          </p>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const MobileNav = ({ activeView, onViewChange }) => (
   <nav className="fixed bottom-3 left-3 right-3 z-40 grid grid-cols-5 gap-1 rounded-2xl border-[3px] border-black bg-white p-1.5 shadow-[5px_5px_0_#0F172A] lg:hidden">

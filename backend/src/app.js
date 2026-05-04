@@ -10,7 +10,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 const app = express();
 
 // CORS Configuration
-const allowedOrigins = (process.env.FRONTEND_URL || "")
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);

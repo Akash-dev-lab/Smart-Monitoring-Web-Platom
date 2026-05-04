@@ -299,11 +299,8 @@ const AIInsightPanel = ({ insight, incident }) => {
     );
   }
 
-  const suggestions = Array.isArray(insight?.suggestion)
-    ? insight.suggestion
-    : insight?.suggestion
-      ? [insight.suggestion]
-      : [];
+  // Get suggestions from formatted insight (already normalized to array)
+  const suggestions = insight?.suggestions || [];
 
   return (
     <div className="rounded-xl border-2 border-black bg-[#FDFBF7] p-4">
@@ -337,8 +334,8 @@ const AIInsightPanel = ({ insight, incident }) => {
 
       {suggestions.length > 0 && (
         <div className="mt-3 grid gap-2">
-          {suggestions.slice(0, 3).map((suggestion) => (
-            <div key={suggestion} className="flex items-start gap-2 rounded-lg border-2 border-black bg-[#FFD600] p-2">
+          {suggestions.map((suggestion, index) => (
+            <div key={`${suggestion}-${index}`} className="flex items-start gap-2 rounded-lg border-2 border-black bg-[#FFD600] p-2">
               <Lightbulb className="mt-0.5 shrink-0 text-black" size={16} strokeWidth={3} />
               <p className="text-sm font-black leading-6 text-black">{suggestion}</p>
             </div>

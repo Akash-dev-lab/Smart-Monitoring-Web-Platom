@@ -8,11 +8,35 @@ import {
 // REGISTER
 export const register = async (req, res) => {
   try {
-    const user = await registerUser(req.body);
+    const { user, accessToken, refreshToken } = await registerUser(req.body);
+
+    // Cookie settings for cross-origin (Vercel → Render)
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true, // Always true for production (HTTPS required)
+      sameSite: "none", // Required for cross-origin cookies
+      maxAge: 60 * 60 * 1000, // 1 hour
+    };
+
+    const refreshCookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    };
+
+    // Set HTTP-only cookies
+    res.cookie("accessToken", accessToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     res.status(201).json({
       message: "User registered successfully",
-      user,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -44,7 +68,7 @@ export const login = async (req, res) => {
     res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     res.json({
-      message: "Login successful",
+      message: "Login successfull",
       user: {
         id: user._id,
         name: user.name,

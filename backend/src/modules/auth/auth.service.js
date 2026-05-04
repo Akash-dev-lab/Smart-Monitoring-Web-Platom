@@ -37,7 +37,14 @@ export const registerUser = async ({ name, email, password }) => {
     password: hashedPassword,
   });
 
-  return user;
+  // Generate tokens for immediate login after registration
+  const { accessToken, refreshToken } = generateTokens(user);
+
+  // Save refresh token to user
+  user.refreshToken = refreshToken;
+  await user.save();
+
+  return { user, accessToken, refreshToken };
 };
 
 // 🔐 LOGIN
