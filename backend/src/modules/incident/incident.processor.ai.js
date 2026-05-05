@@ -1,44 +1,44 @@
-import AIInsight from '../ai/ai.model.js';
-import { buildPrompt } from '../ai/ai.promptBuilder.js';
-import { callAI } from '../ai/ai.service.js';
-import { formatAIResponse } from '../ai/ai.formatter.js';
+import { Queue } from "bullmq";
+import { connection } from "../../config/redis.js";
+import { buildMonitorInsight } from "../ai/ai.service.js";
 
-import Monitor from '../monitor/monitor.model.js';
-import Log from '../logs/log.model.js';
+const aiQueue = new Queue("ai-queue", { connection });
 
-export const processIncident = async incident => {
+/**
+ * Enqueue AI processing for an incident.
+ * Falls back to inline processing if queue fails.
+ */
+export const processIncident = async (incident) => {
   try {
-    console.log('🧠 AI Triggered for incident...');
+    console.log("🧠 AI job enqueued for incident...");
 
-    const monitor = await Monitor.findById(incident.monitorId);
-
-    const logs = await Log.find({ monitorId: incident.monitorId })
-      .sort({ createdAt: -1 })
-      .limit(10);
-
-    const prompt = buildPrompt({
-      monitor,
-      logs,
-      incident,
-    });
-
-    const rawAI = await callAI(prompt);
-
-    if (!rawAI) {
-      console.log('⚠️ AI skipped (no response)');
-      return;
-    }
-
-    const formatted = formatAIResponse(rawAI);
-
-    await AIInsight.create({
-      monitorId: incident.monitorId,
-      incidentId: incident._id,
-      ...formatted,
-    });
-
-    console.log('✅ AI Insight saved');
+    await aiQueue.add(
+      "analyze-incident",
+      {
+        monitorId: incident.monitorId.toString(),
+        incidentId: incident._id.toString(),
+        source: "INCIDENT",
+      },
+      {
+        attempts: 2,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      }
+    );
   } catch (err) {
-    console.error('❌ AI Processing Failed:', err.message);
+    // Fallback: run inline if queue fails
+    console.warn("⚠️ AI queue failed, running inline:", err.message);
+    try {
+      await buildMonitorInsight({
+        monitorId: incident.monitorId,
+        incidentId: incident._id,
+        source: "INCIDENT",
+        forceRefresh: true,
+      });
+      console.log("✅ AI Insight saved (inline fallback)");
+    } catch (innerErr) {
+      console.error("❌ AI Processing Failed:", innerErr.message);
+    }
   }
 };

@@ -7,6 +7,8 @@ import aiRoutes from "./modules/ai/ai.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
+import alertRoutes from "./modules/alert/alert.routes.js";
+import incidentRoutes from "./modules/incident/incident.routes.js";
 
 const app = express();
 
@@ -48,6 +50,8 @@ app.use("/ai", aiRoutes);
 app.use("/monitors", monitorRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/admin", adminRoutes);
+app.use("/alerts", alertRoutes);
+app.use("/incidents", incidentRoutes);
 
 // Health check endpoint
 app.get("/", (req, res) => {

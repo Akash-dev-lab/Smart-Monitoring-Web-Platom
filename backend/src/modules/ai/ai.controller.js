@@ -1,34 +1,26 @@
 import Monitor from "../monitor/monitor.model.js";
-import Log from "../logs/log.model.js";
-import Incident from "../incident/incident.model.js";
-import { buildPrompt } from "./ai.promptBuilder.js";
-import { callAI } from "./ai.service.js";
-import { formatAIResponse } from "./ai.formatter.js";
+import { buildMonitorInsight, listMonitorInsights } from "./ai.service.js";
+
+const getAuthenticatedUserId = (req) => req.user?._id?.toString?.() || req.user?.userId || null;
 
 export const getAIInsights = async (req, res) => {
   try {
     const { monitorId } = req.params;
-
-    const monitor = await Monitor.findById(monitorId);
-    const logs = await Log.find({ monitorId }).sort({ createdAt: -1 }).limit(10);
-    const incident = await Incident.findOne({ monitorId, status: "OPEN" });
-
-    
+    const monitor = await Monitor.findOne({
+      _id: monitorId,
+      userId: getAuthenticatedUserId(req),
+    });
 
     if (!monitor) {
-        console.log(monitor)
       return res.status(404).json({ message: "Monitor not found" });
     }
 
-    const prompt = buildPrompt({ monitor, logs, incident });
-
-    const rawAI = await callAI(prompt);
-
-    const formatted = formatAIResponse(rawAI);
+    await buildMonitorInsight({ monitorId, source: "ON_DEMAND" });
+    const insights = await listMonitorInsights(monitorId);
 
     return res.json({
+      data: insights,
       monitorId,
-      ai: formatted
     });
 
   } catch (err) {

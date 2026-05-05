@@ -9,13 +9,9 @@ const QUEUES = {
   AUTH_OTP: `${QUEUE_PREFIX}.AUTH.OTP`,
   AUTH_USER_CREATED: `${QUEUE_PREFIX}.AUTH.USER_CREATED`,
   AUTH_USER_LOGGED_IN: `${QUEUE_PREFIX}.AUTH.USER_LOGGED_IN`,
-  PAYMENT_COMPLETED: `${QUEUE_PREFIX}.PAYMENT.COMPLETED`,
-  PAYMENT_FAILED: `${QUEUE_PREFIX}.PAYMENT.FAILED`,
-  PAYMENT_INITIATED: `${QUEUE_PREFIX}.PAYMENT.INITIATED`,
-  PRODUCT_CREATED: `${QUEUE_PREFIX}.PRODUCT.CREATED`,
-  PRODUCT_UPDATED: `${QUEUE_PREFIX}.PRODUCT.UPDATED`,
-  PRODUCT_DELETED: `${QUEUE_PREFIX}.PRODUCT.DELETED`,
-  ORDER_CANCELLED: `${QUEUE_PREFIX}.ORDER.CANCELLED`,
+  MONITOR_DOWN: `${QUEUE_PREFIX}.MONITOR.DOWN`,
+  MONITOR_RECOVERED: `${QUEUE_PREFIX}.MONITOR.RECOVERED`,
+  INCIDENT_CREATED: `${QUEUE_PREFIX}.INCIDENT.CREATED`,
 };
 
 const buildOtpTemplate = ({ otp, purpose, ttlMinutes }) => {
@@ -43,6 +39,8 @@ export async function startNotificationListeners() {
   const register = (queueName, handler) => {
     subscriptions.push(subscribeToQueue(queueName, handler));
   };
+
+  // ─── AUTH EVENTS ───
 
   register(QUEUES.AUTH_OTP, async (data) => {
     const purposeLabel = data.purpose ? ` - ${data.purpose}` : "";
@@ -77,7 +75,7 @@ export async function startNotificationListeners() {
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
 
         <p>
-          If you ever need help, just reply to this email — we’re here for you.
+          If you ever need help, just reply to this email — we're here for you.
         </p>
 
         <p style="margin-top: 30px;">
@@ -138,7 +136,7 @@ export async function startNotificationListeners() {
         </p>
 
         <p>
-          <strong>If this wasn’t you</strong>, please reset your password
+          <strong>If this wasn't you</strong>, please reset your password
           immediately and contact support.
         </p>
 
@@ -161,252 +159,124 @@ export async function startNotificationListeners() {
     );
   });
 
-  register(QUEUES.PAYMENT_COMPLETED, async (data) => {
-    const customerName = `${data.fullName?.firstName || ""} ${data.fullName?.lastName || ""}`.trim();
+  // ─── MONITORING EVENTS ───
 
+  register(QUEUES.MONITOR_DOWN, async (data) => {
     const emailHTMLTemplate = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
-        <h2 style="color: #2c3e50;">Payment Successful 🎉</h2>
+        <h2 style="color: #e74c3c;">🚨 Monitor Down Alert</h2>
 
-        <p>Hi <strong>${customerName || "there"}</strong>,</p>
+        <p>Your monitored endpoint is experiencing issues:</p>
 
-        <p>
-          Thank you for your payment. Your transaction has been completed
-          successfully.
-        </p>
-
-        <hr style="border: none; border-top: 1px solid #eee;" />
-
-        <h3>Payment Details</h3>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="padding: 8px 0;"><strong>Order ID</strong></td>
-            <td style="padding: 8px 0;">${data.orderId}</td>
+            <td style="padding: 8px 0;"><strong>URL</strong></td>
+            <td style="padding: 8px 0;">${data.url}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0;"><strong>Payment ID</strong></td>
-            <td style="padding: 8px 0;">${data.paymentId}</td>
+            <td style="padding: 8px 0;"><strong>Status</strong></td>
+            <td style="padding: 8px 0; color: #e74c3c;"><strong>DOWN</strong></td>
           </tr>
           <tr>
-            <td style="padding: 8px 0;"><strong>Amount Paid</strong></td>
-            <td style="padding: 8px 0;">
-              ${data.currency?.toUpperCase()} ${data.amount}
-            </td>
+            <td style="padding: 8px 0;"><strong>Consecutive Failures</strong></td>
+            <td style="padding: 8px 0;">${data.failCount || "N/A"}</td>
           </tr>
         </table>
 
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
 
-        <p>
-          If you have any questions, feel free to reply to this email.
-        </p>
+        <p>Please investigate immediately. Check the ${BRAND_NAME} dashboard for more details.</p>
 
         <p style="margin-top: 30px;">
-          Best regards,<br/>
-          <strong>The ${BRAND_NAME} Team</strong>
-        </p>
-
-        <p style="font-size: 12px; color: #888;">
-          This is an automated payment confirmation.
+          — <strong>The ${BRAND_NAME} Monitoring System</strong>
         </p>
       </div>
     `;
 
     await sendEmail(
       data.email,
-      "Payment Successful",
-      `Your payment of ${data.currency?.toUpperCase()} ${data.amount} was successful`,
+      `🚨 Monitor Down: ${data.url}`,
+      `Your monitor ${data.url} is DOWN with ${data.failCount} consecutive failures`,
       emailHTMLTemplate
     );
   });
 
-  register(QUEUES.PAYMENT_FAILED, async (data) => {
-    const customerName = `${data.fullName?.firstName || ""} ${data.fullName?.lastName || ""}`.trim();
-
+  register(QUEUES.MONITOR_RECOVERED, async (data) => {
     const emailHTMLTemplate = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
-        <h2 style="color: #e74c3c;">Payment Failed ❌</h2>
+        <h2 style="color: #27ae60;">✅ Monitor Recovered</h2>
 
-        <p>Hi <strong>${customerName || "there"}</strong>,</p>
+        <p>Great news! Your monitored endpoint is back online:</p>
 
-        <p>
-          Unfortunately, your payment could not be processed.
-        </p>
-
-        <hr style="border: none; border-top: 1px solid #eee;" />
-
-        <h3>Payment Details</h3>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="padding: 8px 0;"><strong>Order ID</strong></td>
-            <td style="padding: 8px 0;">${data.orderId}</td>
+            <td style="padding: 8px 0;"><strong>URL</strong></td>
+            <td style="padding: 8px 0;">${data.url}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0;"><strong>Amount</strong></td>
-            <td style="padding: 8px 0;">
-              ${data.currency?.toUpperCase()} ${data.amount}
-            </td>
+            <td style="padding: 8px 0;"><strong>Status</strong></td>
+            <td style="padding: 8px 0; color: #27ae60;"><strong>UP</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Downtime</strong></td>
+            <td style="padding: 8px 0;">${data.downtime || "N/A"}</td>
           </tr>
         </table>
 
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
 
-        <p>
-          Please try again or contact ${SUPPORT_EMAIL} for assistance.
-        </p>
+        <p>The incident has been automatically resolved.</p>
 
         <p style="margin-top: 30px;">
-          Regards,<br/>
-          <strong>The ${BRAND_NAME} Team</strong>
-        </p>
-
-        <p style="font-size: 12px; color: #888;">
-          This is an automated payment failure notification.
+          — <strong>The ${BRAND_NAME} Monitoring System</strong>
         </p>
       </div>
     `;
 
     await sendEmail(
       data.email,
-      "Payment Failed",
-      `Your payment of ${data.currency?.toUpperCase()} ${data.amount} failed`,
+      `✅ Monitor Recovered: ${data.url}`,
+      `Your monitor ${data.url} is back UP`,
       emailHTMLTemplate
     );
   });
 
-  register(QUEUES.PAYMENT_INITIATED, async (data) => {
-    const customerName = `${data.fullName?.firstName || ""} ${data.fullName?.lastName || ""}`.trim();
-
+  register(QUEUES.INCIDENT_CREATED, async (data) => {
     const emailHTMLTemplate = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
-        <h2 style="color: #f39c12;">Payment Initiated ⏳</h2>
+        <h2 style="color: #e74c3c;">⚠️ New Incident Created</h2>
 
-        <p>Hi <strong>${customerName || "there"}</strong>,</p>
+        <p>An incident has been automatically created for your monitor:</p>
 
-        <p>
-          Your payment is being processed. We'll notify you once it's complete.
-        </p>
-
-        <hr style="border: none; border-top: 1px solid #eee;" />
-
-        <h3>Payment Details</h3>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="padding: 8px 0;"><strong>Order ID</strong></td>
-            <td style="padding: 8px 0;">${data.orderId}</td>
+            <td style="padding: 8px 0;"><strong>Monitor</strong></td>
+            <td style="padding: 8px 0;">${data.url || data.monitorId}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0;"><strong>Amount</strong></td>
-            <td style="padding: 8px 0;">
-              ${data.currency?.toUpperCase()} ${data.amount}
-            </td>
+            <td style="padding: 8px 0;"><strong>Incident ID</strong></td>
+            <td style="padding: 8px 0;">${data.incidentId}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Failures</strong></td>
+            <td style="padding: 8px 0;">${data.failCount}</td>
           </tr>
         </table>
 
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
 
-        <p>
-          If you did not initiate this payment, contact ${SUPPORT_EMAIL}.
-        </p>
+        <p>AI analysis is running. Check your ${BRAND_NAME} dashboard for insights and suggested fixes.</p>
 
         <p style="margin-top: 30px;">
-          Thanks,<br/>
-          <strong>The ${BRAND_NAME} Team</strong>
+          — <strong>The ${BRAND_NAME} Monitoring System</strong>
         </p>
       </div>
     `;
 
     await sendEmail(
       data.email,
-      "Payment Initiated",
-      `Your payment of ${data.currency?.toUpperCase()} ${data.amount} is being processed`,
-      emailHTMLTemplate
-    );
-  });
-
-  register(QUEUES.PRODUCT_CREATED, async (data) => {
-    const emailHTMLTemplate = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
-        <h2 style="color: #2c3e50;">Product Created ✅</h2>
-
-        <p>The product <strong>${data.productName}</strong> has been created.</p>
-
-        <p style="margin-top: 20px;">
-          Regards,<br/>
-          <strong>The ${BRAND_NAME} Team</strong>
-        </p>
-      </div>
-    `;
-
-    await sendEmail(
-      data.email,
-      "Product Created",
-      `The product ${data.productName} has been created`,
-      emailHTMLTemplate
-    );
-  });
-
-  register(QUEUES.PRODUCT_UPDATED, async (data) => {
-    const emailHTMLTemplate = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
-        <h2 style="color: #2c3e50;">Product Updated ✅</h2>
-
-        <p>The product <strong>${data.productName}</strong> has been updated.</p>
-
-        <p style="margin-top: 20px;">
-          Regards,<br/>
-          <strong>The ${BRAND_NAME} Team</strong>
-        </p>
-      </div>
-    `;
-
-    await sendEmail(
-      data.email,
-      "Product Updated",
-      `The product ${data.productName} has been updated`,
-      emailHTMLTemplate
-    );
-  });
-
-  register(QUEUES.PRODUCT_DELETED, async (data) => {
-    const emailHTMLTemplate = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
-        <h2 style="color: #2c3e50;">Product Deleted ✅</h2>
-
-        <p>The product <strong>${data.productName}</strong> has been deleted.</p>
-
-        <p style="margin-top: 20px;">
-          Regards,<br/>
-          <strong>The ${BRAND_NAME} Team</strong>
-        </p>
-      </div>
-    `;
-
-    await sendEmail(
-      data.email,
-      "Product Deleted",
-      `The product ${data.productName} has been deleted`,
-      emailHTMLTemplate
-    );
-  });
-
-  register(QUEUES.ORDER_CANCELLED, async (data) => {
-    const emailHTMLTemplate = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #333;">
-        <h2 style="color: #e74c3c;">Order Cancelled</h2>
-
-        <p>Your order <strong>${data.orderId}</strong> has been cancelled.</p>
-
-        <p style="margin-top: 20px;">
-          If you have questions, contact ${SUPPORT_EMAIL}.
-        </p>
-      </div>
-    `;
-
-    await sendEmail(
-      data.email,
-      "Order Cancelled",
-      `Your order ${data.orderId} has been cancelled`,
+      `⚠️ Incident: ${data.url || "Monitor Alert"}`,
+      `A new incident was created for monitor ${data.url || data.monitorId}`,
       emailHTMLTemplate
     );
   });
