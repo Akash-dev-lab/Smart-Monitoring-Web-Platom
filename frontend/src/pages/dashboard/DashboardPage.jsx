@@ -94,7 +94,7 @@ const DashboardPage = () => {
 
       return () => window.clearTimeout(analyticsTimer);
     }
-  }, [activeView, loadAnalytics]);
+  }, [activeView, loadAnalytics, monitors.length]);
 
   useEffect(() => {
     if (activeView === 'incidents') {
@@ -102,7 +102,7 @@ const DashboardPage = () => {
 
       return () => window.clearTimeout(detailsTimer);
     }
-  }, [activeView, loadIncidentDetails]);
+  }, [activeView, loadIncidentDetails, monitors.length]);
 
   const loadDashboardSummary = useCallback(() => {
     dispatch(fetchDashboardSummary());
