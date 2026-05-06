@@ -1,15 +1,43 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { useDispatch } from 'react-redux';
 import AuthLayout from './AuthLayout';
 import AuthPanel from './AuthPanel';
 import FormField from './FormField';
-import { login, setCurrentUser } from '../../services/authApi';
+import { checkAuthUser, loginUser, setUserEmail } from '../../store/authSlice';
+import { setCurrentUser } from '../../services/authApi';
+import { toast } from 'react-toastify';
 
 const SignInPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const params = new URLSearchParams(location.search);
+  const auth = params.get('auth');
+  const oauthError = params.get('error') || '';
+  const displayError = error || oauthError;
+
+  useEffect(() => {
+    if (oauthError) return;
+    if (auth === 'success') {
+      (async () => {
+        try {
+          const response = await dispatch(checkAuthUser()).unwrap();
+          if (response?.user) {
+            setCurrentUser(response.user);
+          }
+          toast.success('Signed in successfully');
+          navigate('/dashboard/overview', { replace: true });
+        } catch (err) {
+          setError(err?.message || 'Session verification failed. Please sign in again.');
+        }
+      })();
+    }
+  }, [auth, dispatch, navigate, oauthError]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -21,14 +49,18 @@ const SignInPage = () => {
     const password = formData.get('password');
 
     try {
-      const response = await login({ email, password });
-      
-      // Only store user info (tokens are in HTTP-only cookies)
-      setCurrentUser(response.user);
-      
-      navigate('/dashboard');
+      const response = await dispatch(loginUser({ email, password })).unwrap();
+      dispatch(setUserEmail(email));
+      toast.success(response?.message || 'OTP sent to your email');
+      navigate('/otp');
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Login failed');
+      if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+        setError(err.errors[0].message);
+      } else if (err?.message) {
+        setError(err.message);
+      } else {
+        setError(typeof err === 'string' ? err : 'Login failed');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -47,11 +79,12 @@ const SignInPage = () => {
         icon={ShieldCheck}
         onSubmit={handleSubmit}
         title="Sign In"
+        mode="signin"
       >
         <div className="grid gap-4">
-          {error && (
+          {displayError && (
             <div className="rounded border-2 border-red-500 bg-red-50 p-3 text-sm font-bold text-red-700">
-              {error}
+              {displayError}
             </div>
           )}
           <FormField autoComplete="email" icon={Mail} label="Email" name="email" placeholder="you@example.com" type="email" />
@@ -69,7 +102,10 @@ const SignInPage = () => {
               <input className="h-5 w-5 accent-[#00E676]" type="checkbox" />
               Remember signal
             </label>
-            <Link to="/signup" className="uppercase italic text-[#1E6BFF] underline decoration-[3px] underline-offset-4">
+            <Link
+              to="/recover"
+              className="uppercase italic text-[#1E6BFF] underline decoration-[3px] underline-offset-4"
+            >
               Recover access
             </Link>
           </div>

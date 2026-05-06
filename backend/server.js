@@ -29,6 +29,8 @@ startNotificationListeners().catch((error) => {
   console.error("Notification listeners failed to start:", error.message);
 });
 
-server.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+const port = Number(process.env.PORT || 4000);
+
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });

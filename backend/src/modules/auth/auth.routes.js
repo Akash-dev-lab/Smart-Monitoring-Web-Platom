@@ -83,7 +83,7 @@ router.get(
       if (err) return next(err);
       if (!user) {
         return res.redirect(
-          `${frontend}/login?error=${encodeURIComponent(info?.message || 'Google sign-in failed')}`
+          `${frontend}/signin?error=${encodeURIComponent(info?.message || 'Google sign-in failed')}`
         );
       }
 
@@ -120,7 +120,7 @@ router.get(
       if (err) return next(err);
       if (!user) {
         return res.redirect(
-          `${frontend}/login?error=${encodeURIComponent(info?.message || 'GitHub sign-in failed')}`
+          `${frontend}/signin?error=${encodeURIComponent(info?.message || 'GitHub sign-in failed')}`
         );
       }
 
@@ -144,7 +144,7 @@ router.get('/oauth-failure', (req, res) => {
       'No Google account found for this user. If you registered using GitHub or email/password, try logging in with that method or sign up with Google.';
   }
 
-  return res.redirect(`${frontend}/login?error=${encodeURIComponent(message)}`);
+  return res.redirect(`${frontend}/signin?error=${encodeURIComponent(message)}`);
 });
 
 router.post('/logout', authenticate, logout);

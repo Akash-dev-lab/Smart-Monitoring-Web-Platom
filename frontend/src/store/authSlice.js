@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { authAxiosInstance } from '../services/axiosInstance';
+import axiosInstance from '../services/axiosInstance';
 
 // 1. Register User
 export const registerUser = createAsyncThunk(
@@ -7,7 +7,7 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       console.log("Attempting to register user with data:", userData);
-      const response = await authAxiosInstance.post('/auth/register', userData);
+      const response = await axiosInstance.post('/auth/register', userData);
       return response.data;
     } catch (error) {
       console.log("Error during registration API call:", error?.response?.data);
@@ -23,7 +23,7 @@ export const verifyRegisterOtp = createAsyncThunk(
   'auth/verifyRegisterOtp',
   async (verificationData, { rejectWithValue }) => {
     try {
-      const response = await authAxiosInstance.post('/auth/verify-register-otp', verificationData);
+      const response = await axiosInstance.post('/auth/verify-register-otp', verificationData);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -39,7 +39,7 @@ export const loginUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     console.log("Attempting to log in with credentials:", userData);
     try {
-      const response = await authAxiosInstance.post('/auth/login', userData);
+      const response = await axiosInstance.post('/auth/login', userData);
       console.log(response.data);
       return response.data;
     } catch (error) {
@@ -56,7 +56,7 @@ export const verifyLoginOtp = createAsyncThunk(
   async (verificationData, { rejectWithValue }) => {
     console.log("Attempting to verify login OTP with data:", verificationData);
     try {
-      const response = await authAxiosInstance.post('/auth/verify-login-otp', verificationData);
+      const response = await axiosInstance.post('/auth/verify-login-otp', verificationData);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -72,7 +72,7 @@ export const resendOtp = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     console.log("Attempting to resend OTP with data:", data);
     try {
-      const response = await authAxiosInstance.post('/auth/resend-otp', data);
+      const response = await axiosInstance.post('/auth/resend-otp', data);
       console.log(response);
       return response.data;
     } catch (error) {
@@ -89,7 +89,7 @@ export const logoutUser = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
-      await authAxiosInstance.post('/auth/logout');
+      await axiosInstance.post('/auth/logout');
       return null;
     } catch (error) {
       return rejectWithValue(
@@ -104,7 +104,7 @@ export const checkAuthUser = createAsyncThunk(
   'auth/me',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await authAxiosInstance.get('/auth/me');
+      const response = await axiosInstance.get('/auth/me');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -118,7 +118,7 @@ export const forgotPassword = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     console.log(data);
     try {
-      const response = await authAxiosInstance.post('/auth/forgot-password', data);
+      const response = await axiosInstance.post('/auth/forgot-password', data);
       console.log(response);
       return response.data;
     } catch (error) {
@@ -135,7 +135,7 @@ export const verifyForgotPasswordOtp = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     console.log(data);
     try {
-      const response = await authAxiosInstance.post('/auth/verify-forgot-password-otp', data);
+      const response = await axiosInstance.post('/auth/verify-forgot-password-otp', data);
       console.log(response);
       return response.data;
     } catch (error) {
@@ -152,7 +152,7 @@ export const resetPassword = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     console.log(data);
     try {
-      const response = await authAxiosInstance.post('/auth/reset-password', data);
+      const response = await axiosInstance.post('/auth/reset-password', data);
       console.log(response);
       return response.data;
     } catch (error) {
@@ -168,7 +168,7 @@ export const refreshToken = createAsyncThunk(
   'auth/refreshToken',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await authAxiosInstance.post('/auth/refresh-token');
+      const response = await axiosInstance.post('/auth/refresh-token');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -314,7 +314,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(refreshToken.fulfilled, (state) => {
-        // Session successfully refreshed
+        state.error = null;
       })
       .addCase(refreshToken.rejected, (state, action) => {
         state.error = action.payload;

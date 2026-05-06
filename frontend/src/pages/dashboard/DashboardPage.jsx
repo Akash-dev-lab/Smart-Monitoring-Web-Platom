@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, RefreshCcw } from 'lucide-react';
+import { toast } from 'react-toastify';
 import IncidentsSection from './components/IncidentsSection';
+import AlertsSection from './components/AlertsSection';
 import MonitorDialog from './components/MonitorDialog';
 import MonitorsSection from './components/MonitorsSection';
 import { MobileNav, SidebarContent } from './components/Navigation';
@@ -12,9 +14,16 @@ import StatusPagesSection from './components/StatusPagesSection';
 import { emptyMonitorForm, navItems } from './dashboardData';
 import { getApiBaseUrl } from '../../services/dashboardApi';
 import {
+  connectSocket,
+  joinMonitorRoom,
+  joinUserRoom,
+  leaveMonitorRoom,
+} from '../../services/socket';
+import {
   createMonitorRecord,
   deleteMonitorRecord,
   fetchAnalytics,
+  fetchAlerts,
   fetchDashboardSummary,
   fetchIncidentDetails,
   fetchMonitors,
@@ -24,6 +33,7 @@ import {
 import {
   selectAnalyticsByMonitorId,
   selectAIInsightsByMonitorId,
+  selectAlerts,
   selectDashboard,
   selectDashboardCounts,
   selectFilteredMonitors,
@@ -46,11 +56,13 @@ const DashboardPage = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const {
     analyticsError,
+    alertsError,
     dashboardSummary,
     dashboardSummaryError,
     deletingMonitorId,
     incidentDetailsError,
     isLoadingAnalytics,
+    isLoadingAlerts,
     isLoadingDashboardSummary,
     isLoadingIncidentDetails,
     isLoadingMonitors,
@@ -61,6 +73,7 @@ const DashboardPage = () => {
   const analyticsByMonitorId = useSelector(selectAnalyticsByMonitorId);
   const aiInsightsByMonitorId = useSelector(selectAIInsightsByMonitorId);
   const incidentsByMonitorId = useSelector(selectIncidentsByMonitorId);
+  const alertsPayload = useSelector(selectAlerts);
   const filteredMonitors = useSelector((state) => selectFilteredMonitors(state, query, statusFilter));
   const {
     activeCount,
@@ -69,6 +82,45 @@ const DashboardPage = () => {
   } = useSelector(selectDashboardCounts);
   const validViewIds = navItems.map((item) => item.id);
   const activeView = validViewIds.includes(view) ? view : 'overview';
+
+  // Socket.IO realtime signals
+  useEffect(() => {
+    const socket = connectSocket();
+    joinUserRoom();
+
+    const monitorIds = monitors.map((m) => m.id);
+    monitorIds.forEach((id) => joinMonitorRoom(id));
+
+    const onMonitorStatus = (payload) => {
+      void payload;
+      // Cheap refresh: keep UI in sync with backend check results.
+      dispatch(fetchAnalytics());
+      dispatch(fetchIncidentDetails());
+    };
+
+    const onIncidentNew = (payload) => {
+      toast.warn('New incident detected');
+      void payload;
+      dispatch(fetchIncidentDetails());
+      dispatch(fetchAnalytics());
+    };
+
+    const onAlertSent = (payload) => {
+      toast.info('Alert sent');
+      void payload;
+    };
+
+    socket.on('monitor:status', onMonitorStatus);
+    socket.on('incident:new', onIncidentNew);
+    socket.on('alert:sent', onAlertSent);
+
+    return () => {
+      socket.off('monitor:status', onMonitorStatus);
+      socket.off('incident:new', onIncidentNew);
+      socket.off('alert:sent', onAlertSent);
+      monitorIds.forEach((id) => leaveMonitorRoom(id));
+    };
+  }, [dispatch, monitors]);
 
   const loadMonitors = useCallback(() => {
     dispatch(fetchMonitors());
@@ -103,6 +155,17 @@ const DashboardPage = () => {
       return () => window.clearTimeout(detailsTimer);
     }
   }, [activeView, loadIncidentDetails, monitors.length]);
+
+  const loadAlerts = useCallback(() => {
+    dispatch(fetchAlerts());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (activeView === 'alerts') {
+      const timer = window.setTimeout(loadAlerts, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [activeView, loadAlerts]);
 
   const loadDashboardSummary = useCallback(() => {
     dispatch(fetchDashboardSummary());
@@ -340,6 +403,16 @@ const DashboardPage = () => {
                   isLoadingAnalytics={isLoadingAnalytics || isLoadingIncidentDetails}
                   monitors={monitors}
                   onRefresh={refreshIncidents}
+                />
+              )}
+
+              {activeView === 'alerts' && (
+                <AlertsSection
+                  alertsPayload={alertsPayload}
+                  error={alertsError}
+                  isLoading={isLoadingAlerts}
+                  monitors={monitors}
+                  onRefresh={loadAlerts}
                 />
               )}
 

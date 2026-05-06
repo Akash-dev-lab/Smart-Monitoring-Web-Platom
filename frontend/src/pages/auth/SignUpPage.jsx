@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, LockKeyhole, Mail, UserRoundPlus } from 'lucide-react';
+import { useDispatch } from 'react-redux';
 import AuthLayout from './AuthLayout';
 import AuthPanel from './AuthPanel';
 import FormField from './FormField';
-import { register, setCurrentUser } from '../../services/authApi';
+import { registerUser, setUserEmail } from '../../store/authSlice';
+import { toast } from 'react-toastify';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -17,22 +20,23 @@ const SignUpPage = () => {
     setIsLoading(true);
 
     const formData = new FormData(event.target);
-    const name = formData.get('name')?.trim();
+    const fullName = formData.get('name')?.trim();
     const email = formData.get('email')?.trim().toLowerCase();
     const password = formData.get('password');
 
     try {
-      const response = await register({ name, email, password });
-      
-      // Save user to localStorage
-      if (response.user) {
-        setCurrentUser(response.user);
-      }
-      
-      // Redirect to dashboard
-      navigate('/dashboard/overview');
+      const response = await dispatch(registerUser({ fullName, email, password })).unwrap();
+      dispatch(setUserEmail(email));
+      toast.success(response?.message || 'OTP sent to your email');
+      navigate('/otp');
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Registration failed');
+      if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+        setError(err.errors[0].message);
+      } else if (err?.message) {
+        setError(err.message);
+      } else {
+        setError(typeof err === 'string' ? err : 'Registration failed');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -51,6 +55,7 @@ const SignUpPage = () => {
         icon={UserRoundPlus}
         onSubmit={handleSubmit}
         title="Sign Up"
+        mode="signup"
       >
         <div className="grid gap-4">
           {error && (

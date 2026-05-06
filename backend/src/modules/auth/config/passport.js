@@ -6,7 +6,7 @@ import { normalizeEmail } from '../utils/normalize.js';
 
 const { Strategy: GoogleStrategy } = googleOauth;
 const { Strategy: GitHubStrategy } = githubOauth;
-const defaultPort = process.env.PORT || '8080';
+const defaultPort = process.env.PORT || '4000';
 const backendUrl = process.env.BACKEND_URL || `http://localhost:${defaultPort}`;
 
 const splitName = (displayName = '') => {
@@ -87,7 +87,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${backendUrl}/api/v1/auth/google/callback`,
+        callbackURL: `${backendUrl}/auth/google/callback`,
         passReqToCallback: true,
       },
       async (req, accessToken, refreshToken, profile, done) => {
@@ -127,7 +127,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
       {
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: `${backendUrl}/api/v1/auth/github/callback`,
+        callbackURL: `${backendUrl}/auth/github/callback`,
         passReqToCallback: true,
       },
       async (req, accessToken, refreshToken, profile, done) => {

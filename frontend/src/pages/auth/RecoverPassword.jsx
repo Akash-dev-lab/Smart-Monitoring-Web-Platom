@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import AuthLayout from './AuthLayout';
@@ -6,7 +6,7 @@ import AuthPanel from './AuthPanel';
 import FormField from './FormField';
 import { useDispatch } from 'react-redux';
 import { forgotPassword, resendOtp, resetPassword, verifyForgotPasswordOtp } from '../../store/authSlice';
-import {toast} from "react-toastify"
+import { toast } from 'react-toastify';
 
 const RecoverPassword = () => {
   const navigate = useNavigate();
@@ -17,7 +17,6 @@ const RecoverPassword = () => {
   
   
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
   
   const dispatch = useDispatch();
 
@@ -42,7 +41,6 @@ console.log(step)
 
       } else if (step === 2) {
         const enteredOtp = formData.get('otp')?.trim();
-        setOtp(enteredOtp);
 
         console.log("ffff",enteredOtp, email)
 
@@ -83,7 +81,7 @@ console.log(step)
 
   const handleResendOtp = async()=> {
       try{
-          const response =  await dispatch(resendOtp({purpose:"forgot-password", email})).unwrap()
+          const response =  await dispatch(resendOtp({purpose:"forgot", email})).unwrap()
         toast.success(response.message || "Otp resent successfully!")
       }catch(err){
    console.error("Caught error:", err);

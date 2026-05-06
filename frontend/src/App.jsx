@@ -5,7 +5,15 @@ const HomePage = lazy(() => import('./pages/home').then((module) => ({ default: 
 const DashboardPage = lazy(() => import('./pages/dashboard').then((module) => ({ default: module.DashboardPage })));
 const SignInPage = lazy(() => import('./pages/auth').then((module) => ({ default: module.SignInPage })));
 const SignUpPage = lazy(() => import('./pages/auth').then((module) => ({ default: module.SignUpPage })));
+const OtpVerificationPage = lazy(() =>
+  import('./pages/auth').then((module) => ({ default: module.OtpVerificationPage }))
+);
+const RecoverPassword = lazy(() =>
+  import('./pages/auth').then((module) => ({ default: module.RecoverPassword }))
+);
 const ProtectedRoute = lazy(() => import('./pages/auth').then((module) => ({ default: module.ProtectedRoute })));
+const AdminRoute = lazy(() => import('./pages/admin/AdminRoute.jsx'));
+const AdminPage = lazy(() => import('./pages/admin/AdminPage.jsx'));
 
 const SkeletonBlock = ({ className = '' }) => (
   <div className={`animate-pulse rounded-xl border-[3px] border-black bg-white/70 ${className}`} />
@@ -65,6 +73,8 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/otp" element={<OtpVerificationPage />} />
+        <Route path="/recover" element={<RecoverPassword />} />
         <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
         <Route
           path="/dashboard/:view"
@@ -72,6 +82,14 @@ const App = () => {
             <ProtectedRoute>
               <DashboardPage />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,6 @@
-import React from 'react'
-import { FaGithub } from "react-icons/fa";
+import { useMemo } from 'react';
+import { FaGithub } from 'react-icons/fa';
+import { API_BASE_URL } from '../../services/apiConfig';
 
 const GoogleMark = () => (
   <span
@@ -16,11 +17,21 @@ const GoogleMark = () => (
   </span>
 );
 
-const SocialLogin = () => {
+const SocialLogin = ({ mode = 'signin' }) => {
+  const suffix = useMemo(() => (mode === 'signup' ? '/signup' : ''), [mode]);
+  const continueWithGoogle = () => {
+    window.location.assign(`${API_BASE_URL}/auth/google${suffix}`);
+  };
+
+  const continueWithGithub = () => {
+    window.location.assign(`${API_BASE_URL}/auth/github${suffix}`);
+  };
+
   return (
     <div>
         <button
           type="button"
+          onClick={continueWithGoogle}
           className="mb-4 inline-flex h-12 w-full items-center justify-center gap-3 rounded-md border-[3px] border-black bg-white px-3 text-sm font-black uppercase italic shadow-[3px_3px_0_#000] transition-transform hover:-translate-y-0.5 sm:h-13"
         >
           <GoogleMark />
@@ -29,6 +40,7 @@ const SocialLogin = () => {
 
              <button
           type="button"
+          onClick={continueWithGithub}
           className="mb-4 inline-flex h-12 w-full items-center justify-center gap-3 rounded-md border-[3px] border-black bg-white px-3 text-sm font-black uppercase italic shadow-[3px_3px_0_#000] transition-transform hover:-translate-y-0.5 sm:h-13"
         >
           <FaGithub size={16} />
@@ -44,4 +56,4 @@ const SocialLogin = () => {
   )
 }
 
-export default SocialLogin
+export default SocialLogin;
