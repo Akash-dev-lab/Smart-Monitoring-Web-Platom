@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import OtpVerificationPage from './OtpVerificationPage';
 
 const AuthLayout = ({ children, eyebrow, title, subtitle }) => {
+  const {isOtpRequired, isAuthenticated} = useSelector(state=> state.auth)
+  console.log(isOtpRequired)
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#1E6BFF] px-3 py-4 font-mono text-black sm:px-5 sm:py-6 lg:px-8">
       <div
@@ -57,7 +61,7 @@ const AuthLayout = ({ children, eyebrow, title, subtitle }) => {
 
           </div>
 
-          <div className="min-w-0 lg:order-2">{children}</div>
+          { !isOtpRequired && !isAuthenticated ? (<div className="min-w-0 lg:order-2">{children}</div>) : (<OtpVerificationPage/>)}
         </section>
       </div>
     </main>

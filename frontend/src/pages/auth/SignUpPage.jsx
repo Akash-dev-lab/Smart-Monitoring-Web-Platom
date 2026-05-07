@@ -5,14 +5,19 @@ import { useDispatch } from 'react-redux';
 import AuthLayout from './AuthLayout';
 import AuthPanel from './AuthPanel';
 import FormField from './FormField';
+import { setCurrentUser } from '../../services/authApi';
+import OtpField from './otpField';
+import { useDispatch } from 'react-redux';
 import { registerUser, setUserEmail } from '../../store/authSlice';
+import SocialLogin from './SocialLogin';
 import { toast } from 'react-toastify';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -20,27 +25,47 @@ const SignUpPage = () => {
     setIsLoading(true);
 
     const formData = new FormData(event.target);
-    const fullName = formData.get('name')?.trim();
+    const firstName = formData.get('firstname')?.trim();
+       const lastName = formData.get('lastname')?.trim();
     const email = formData.get('email')?.trim().toLowerCase();
     const password = formData.get('password');
 
+    const payload = {
+       email: email,
+        password: password,
+        fullName: {
+          firstName,
+          lastName,
+        }
+    }
+
     try {
-      const response = await dispatch(registerUser({ fullName, email, password })).unwrap();
-      dispatch(setUserEmail(email));
-      toast.success(response?.message || 'OTP sent to your email');
-      navigate('/otp');
+      const response = await dispatch(registerUser(payload)).unwrap();
+      console.log(response)
+    toast.success(response?.message || "OTP sent to your email")
+      dispatch(setUserEmail(email))
+    
     } catch (err) {
+        console.error("Caught error:", err);
+
       if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
         setError(err.errors[0].message);
-      } else if (err?.message) {
+      } 
+
+      else if (err?.message) {
         setError(err.message);
-      } else {
+      } 
+
+      else {
         setError(typeof err === 'string' ? err : 'Registration failed');
       }
+      
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
   return (
     <AuthLayout
@@ -57,13 +82,17 @@ const SignUpPage = () => {
         title="Sign Up"
         mode="signup"
       >
+
+        <SocialLogin/>
         <div className="grid gap-4">
           {error && (
             <div className="rounded border-2 border-red-500 bg-red-50 p-3 text-sm font-bold text-red-700">
               {error}
             </div>
           )}
-          <FormField autoComplete="name" icon={UserRoundPlus} label="Full name" name="name" placeholder="Operator name" />
+        <FormField autoComplete="firstname" icon={UserRoundPlus} label="First name" name="firstname" placeholder="Operator firstname" />
+                 <FormField autoComplete="lastname" icon={UserRoundPlus} label="Last name" name="lastname" placeholder="Operator lastname" />
+                 
           <FormField autoComplete="email" icon={Mail} label="Email" name="email" placeholder="you@example.com" type="email" />
           <FormField
             autoComplete="new-password"

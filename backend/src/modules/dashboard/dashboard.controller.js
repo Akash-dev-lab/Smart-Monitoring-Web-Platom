@@ -13,16 +13,23 @@ const getOwnedMonitor = async (req, monitorId) => {
 export const getDashboardSummary = async (req, res) => {
   try {
     const userId = getAuthenticatedUserId(req);
-    const monitors = await Monitor.find({ userId }).select("_id");
-    const monitorIds = monitors.map((monitor) => monitor._id);
 
+    // 1. Get the IDs of monitors belonging to this user
+    const userMonitors = await Monitor.find({ userId }).select("_id");
+    const monitorIds = userMonitors.map(m => m._id);
+
+    // 2. Calculate stats based on those IDs
     const totalMonitors = monitorIds.length;
+    
     const activeIncidents = await Incident.countDocuments({
       monitorId: { $in: monitorIds },
       status: "OPEN"
     });
 
-    const totalLogs = await Log.countDocuments({ monitorId: { $in: monitorIds } });
+    const totalLogs = await Log.countDocuments({ 
+      monitorId: { $in: monitorIds } 
+    });
+
     const successLogs = await Log.countDocuments({
       monitorId: { $in: monitorIds },
       success: true
@@ -32,6 +39,7 @@ export const getDashboardSummary = async (req, res) => {
       ? ((successLogs / totalLogs) * 100).toFixed(2)
       : 0;
 
+    // 3. Send response
     res.json({
       totalMonitors,
       activeIncidents,
@@ -42,7 +50,6 @@ export const getDashboardSummary = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 export const getAllMonitorsDashboard = async (req, res) => {
   try {
     const monitors = await Monitor.find({

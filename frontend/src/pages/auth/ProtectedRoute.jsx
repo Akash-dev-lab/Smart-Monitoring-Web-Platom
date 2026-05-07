@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosInstance';
@@ -40,11 +41,25 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (status === 'unauthed') {
+=======
+import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+
+const ProtectedRoute = ({ children }) => {
+  const location = useLocation();
+  const { user, isAuthenticated } = useSelector(state => state.auth);
+console.log(user,isAuthenticated)
+  if (!isAuthenticated && location.pathname.includes("/dashboard")) {
+>>>>>>> 65e3716 (feat: my auth and dashboard updated)
     return <Navigate to="/signin" replace />;
+  }
+
+  // Agar user authenticated hai aur signin/signup page par jana chahe toh use dashboard par redirect karein
+  if (isAuthenticated && (location.pathname === "/signin" || location.pathname === "/signup")) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 };
 
 export default ProtectedRoute;
-

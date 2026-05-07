@@ -15,6 +15,7 @@ import {
 export const fetchMonitors = createAsyncThunk(
   'dashboard/fetchMonitors',
   async (_, { rejectWithValue }) => {
+    
     try {
       return await getMonitors();
     } catch (error) {

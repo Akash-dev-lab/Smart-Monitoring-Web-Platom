@@ -1,5 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import RecoverPassword from './pages/auth/RecoverPassword';
+import { useEffect } from 'react';
+import { checkAuthUser } from './store/authSlice';
+import { useDispatch } from 'react-redux';
 
 const HomePage = lazy(() => import('./pages/home').then((module) => ({ default: module.HomePage })));
 const DashboardPage = lazy(() => import('./pages/dashboard').then((module) => ({ default: module.DashboardPage })));
@@ -67,14 +71,17 @@ const AppSkeleton = () => (
 );
 
 const App = () => {
+  const dispatch = useDispatch()
+  useEffect(()=>{
+    dispatch(checkAuthUser())
+  },[dispatch])
   return (
     <Suspense fallback={<AppSkeleton />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/signin" element={<SignInPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/otp" element={<OtpVerificationPage />} />
-        <Route path="/recover" element={<RecoverPassword />} />
+        <Route path="/signin" element={<ProtectedRoute> <SignInPage /></ProtectedRoute>} />
+        <Route path="/signup" element={<ProtectedRoute ><SignUpPage /></ProtectedRoute>} />
+        <Route path='/reset-password' element={<RecoverPassword/>}/>
         <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
         <Route
           path="/dashboard/:view"

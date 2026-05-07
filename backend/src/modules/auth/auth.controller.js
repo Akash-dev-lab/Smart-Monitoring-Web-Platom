@@ -131,6 +131,7 @@ const issueAuthSession = async (req, res, user) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { email, password, fullName, username, provider = 'email' } = req.body;
+  console.log("HashChangeEvent",req.body)
   const normalizedEmail = normalizeEmail(email);
   const normalizedUsername = username ? normalizeUsername(username) : null;
 
@@ -230,7 +231,9 @@ const verifyRegisterOTP = asyncHandler(async (req, res) => {
 });
 
 const resendOTP = asyncHandler(async (req, res) => {
+   console.log("hdhhdfh", req.body)
   const identifier = getIdentifierFromBody(req.body);
+ 
   const purpose = req.body.purpose || 'login';
 
   if (purpose === 'register') {
@@ -364,6 +367,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 const verifyForgotPasswordOTP = asyncHandler(async (req, res) => {
   const identifier = getIdentifierFromBody(req.body);
   const { otp } = req.body;
+  console.log(req.body)
   const user = await getUserByIdentifier(identifier);
 
   if (!user || user.provider !== 'email') {
@@ -374,6 +378,7 @@ const verifyForgotPasswordOTP = asyncHandler(async (req, res) => {
   }
 
   const otpResult = await verifyOtp('forgot', user.email, otp);
+  console.log(otpResult)
   if (!otpResult.ok) {
     return res.status(400).json({
       success: false,

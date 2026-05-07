@@ -82,6 +82,7 @@ const DashboardPage = () => {
   } = useSelector(selectDashboardCounts);
   const validViewIds = navItems.map((item) => item.id);
   const activeView = validViewIds.includes(view) ? view : 'overview';
+const {user} = useSelector(state=>state.auth)
 
   // Socket.IO realtime signals
   useEffect(() => {

@@ -21,7 +21,10 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.14.2",
     "react-toastify": "^11.1.0",
+<<<<<<< HEAD
     "socket.io-client": "^4.8.3",
+=======
+>>>>>>> 65e3716 (feat: my auth and dashboard updated)
     "uplot": "^1.6.32"
   },
   "devDependencies": {
