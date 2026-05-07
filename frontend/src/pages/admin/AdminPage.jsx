@@ -20,7 +20,8 @@ import {
   toggleUserStatus,
   updateUserRole,
 } from '../../services/adminApi';
-import { logout, setCurrentUser } from '../../services/authApi';
+import { setCurrentUser } from '../../services/authApi';
+import { logoutUser } from '../../store/authSlice';
 
 const AdminTile = ({ label, value }) => (
   <div className="rounded-2xl border-[3px] border-black bg-white p-5 shadow-[6px_6px_0_#0F172A]">
@@ -207,7 +208,7 @@ const AdminPage = () => {
 
     try {
       setIsLoggingOut(true);
-      await logout();
+      await logoutUser();
       setCurrentUser(null);
       navigate('/signin');
     } catch (logoutError) {

@@ -12,6 +12,7 @@ const FormField = ({ autoComplete, icon: Icon, label, name, placeholder, type = 
           name={name}
           placeholder={placeholder}
           type={type}
+          required
         />
       </span>
     </label>

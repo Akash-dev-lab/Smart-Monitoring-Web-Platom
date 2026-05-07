@@ -1,61 +1,23 @@
-<<<<<<< HEAD
-import { useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import axiosInstance from '../../services/axiosInstance';
-import { getCurrentUser, setCurrentUser } from '../../services/authApi';
-
-const ProtectedRoute = ({ children }) => {
-  const [status, setStatus] = useState('checking'); // checking | authed | unauthed
-  const user = useMemo(() => getCurrentUser(), []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        if (user) {
-          if (!cancelled) setStatus('authed');
-          return;
-        }
-
-        const res = await axiosInstance.get('/auth/me');
-        const me = res?.data?.user || null;
-        if (me) {
-          setCurrentUser(me);
-          if (!cancelled) setStatus('authed');
-        } else {
-          if (!cancelled) setStatus('unauthed');
-        }
-      } catch {
-        if (!cancelled) setStatus('unauthed');
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
-
-  if (status === 'checking') {
-    return null;
-  }
-
-  if (status === 'unauthed') {
-=======
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
-  const { user, isAuthenticated } = useSelector(state => state.auth);
-console.log(user,isAuthenticated)
-  if (!isAuthenticated && location.pathname.includes("/dashboard")) {
->>>>>>> 65e3716 (feat: my auth and dashboard updated)
-    return <Navigate to="/signin" replace />;
+  // Redux state se auth status nikalna
+  const { user, isAuthenticated, loading } = useSelector(state => state.auth);
+
+  // Agar abhi check ho raha hai (loading), toh blank screen ya spinner dikhayein
+  if (loading) {
+    return null; 
   }
 
-  // Agar user authenticated hai aur signin/signup page par jana chahe toh use dashboard par redirect karein
-  if (isAuthenticated && (location.pathname === "/signin" || location.pathname === "/signup")) {
+  // Agar user authenticated nahi hai aur dashboard access kar raha hai -> Redirect to SignIn
+  if (!isAuthenticated && location.pathname.startsWith("/dashboard")) {
+    return <Navigate to="/signin" state={{ from: location }} replace />;
+  }
+
+  // Agar user authenticated hai aur wapas login/signup par jana chahe -> Redirect to Dashboard
+  if (isAuthenticated && (location.pathname === "/signin" || location.pathname === "/signup" || location.pathname === "/")) {
     return <Navigate to="/dashboard" replace />;
   }
 

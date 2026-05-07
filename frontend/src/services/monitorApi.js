@@ -36,9 +36,9 @@ export const mapMonitor = (monitor) => {
  * Fetch all monitors from backend
  * GET /monitors
  */
-export const getMonitors = async (userId) => {
+export const getMonitors = async () => {
   try {
-    console.log(userId)
+  
     const { data } = await axiosInstance.get('/monitors');
     console.log(data)
     const monitors = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];

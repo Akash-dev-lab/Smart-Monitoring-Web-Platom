@@ -1,5 +1,6 @@
 import { ArrowRight, LogIn, RotateCcw, UserPlus } from 'lucide-react';
 import TechnicalBackground from './TechnicalBackground';
+import { useSelector } from 'react-redux';
 
 const navItems = [
   { label: 'Features', href: '#features' },
@@ -8,6 +9,7 @@ const navItems = [
 ];
 
 const HeroSection = () => {
+  const { isAuthenticated } = useSelector((state) => state.auth)
   return (
     <section className="bg-grain relative flex min-h-[720px] w-full flex-col items-center overflow-hidden bg-[#1E6BFF] px-3 pb-10 pt-[4.75rem] font-mono sm:min-h-[112svh] sm:px-5 sm:pb-14 sm:pt-[6rem] lg:pt-[6.25rem] max-[380px]:px-2">
       <TechnicalBackground />
@@ -42,7 +44,7 @@ const HeroSection = () => {
                 AI incident command
               </span>
             </span>
-        </a>
+          </a>
 
           <nav className="hidden items-center rounded-full border-[3px] border-black bg-[#FDFBF7] p-1 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:flex" aria-label="Primary navigation">
             {navItems.map((item) => (
@@ -57,21 +59,30 @@ const HeroSection = () => {
           </nav>
 
           <nav className="flex items-center justify-end gap-2 sm:gap-3" aria-label="Account actions">
-            <a
+            {!isAuthenticated ? (<> <a
               href="/signin"
               className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border-[3px] border-black bg-white px-2.5 text-[11px] font-[900] uppercase italic text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-0.5 min-[360px]:px-3 sm:gap-2 md:px-4 md:text-sm"
             >
               <LogIn size={16} strokeWidth={3} />
               <span className="hidden min-[380px]:inline">Sign in</span>
             </a>
-            <a
-              href="/signup"
-              className="group inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border-[3px] border-black bg-[#00E676] px-2.5 text-[11px] font-[900] uppercase italic text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-0.5 min-[360px]:px-3 sm:gap-2 md:px-4 md:text-sm"
-            >
-              <UserPlus size={16} strokeWidth={3} className="sm:hidden" />
-              <span>Sign up</span>
-              <ArrowRight size={16} strokeWidth={3} className="hidden transition-transform group-hover:translate-x-0.5 sm:block" />
-            </a>
+              <a
+                href="/signup"
+                className="group inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border-[3px] border-black bg-[#00E676] px-2.5 text-[11px] font-[900] uppercase italic text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-0.5 min-[360px]:px-3 sm:gap-2 md:px-4 md:text-sm"
+              >
+                <UserPlus size={16} strokeWidth={3} className="sm:hidden" />
+                <span>Sign up</span>
+                <ArrowRight size={16} strokeWidth={3} className="hidden transition-transform group-hover:translate-x-0.5 sm:block" />
+              </a></>)
+                 : (<a
+                href="/dashboard/overview"
+                className="group inline-flex h-10 w-fit  items-center justify-center gap-1.5 rounded-xl border-[3px] border-black bg-[#00E676] px-2.5 text-[11px] font-[900] uppercase italic text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-0.5 min-[360px]:px-3 sm:gap-2 md:px-4 md:text-sm"
+              >
+                <UserPlus size={16} strokeWidth={3} className="sm:hidden" />
+                <span>Back to Dashboard</span>
+                <ArrowRight size={16} strokeWidth={3} className="hidden transition-transform group-hover:translate-x-0.5 sm:block" />
+              </a>)}
+
           </nav>
         </div>
       </header>

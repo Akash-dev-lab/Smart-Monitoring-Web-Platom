@@ -1,24 +1,21 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import RecoverPassword from './pages/auth/RecoverPassword';
-import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { checkAuthUser } from './store/authSlice';
-import { useDispatch } from 'react-redux';
 
-const HomePage = lazy(() => import('./pages/home').then((module) => ({ default: module.HomePage })));
-const DashboardPage = lazy(() => import('./pages/dashboard').then((module) => ({ default: module.DashboardPage })));
-const SignInPage = lazy(() => import('./pages/auth').then((module) => ({ default: module.SignInPage })));
-const SignUpPage = lazy(() => import('./pages/auth').then((module) => ({ default: module.SignUpPage })));
-const OtpVerificationPage = lazy(() =>
-  import('./pages/auth').then((module) => ({ default: module.OtpVerificationPage }))
-);
-const RecoverPassword = lazy(() =>
-  import('./pages/auth').then((module) => ({ default: module.RecoverPassword }))
-);
-const ProtectedRoute = lazy(() => import('./pages/auth').then((module) => ({ default: module.ProtectedRoute })));
+// Core Components (Non-lazy for stability)
+import ProtectedRoute from './pages/auth/ProtectedRoute';
+
+// Lazy Loaded Pages
+const HomePage = lazy(() => import('./pages/home').then((m) => ({ default: m.HomePage })));
+const DashboardPage = lazy(() => import('./pages/dashboard').then((m) => ({ default: m.DashboardPage })));
+const SignInPage = lazy(() => import('./pages/auth').then((m) => ({ default: m.SignInPage })));
+const SignUpPage = lazy(() => import('./pages/auth').then((m) => ({ default: m.SignUpPage })));
+const RecoverPassword = lazy(() => import('./pages/auth/RecoverPassword'));
 const AdminRoute = lazy(() => import('./pages/admin/AdminRoute.jsx'));
 const AdminPage = lazy(() => import('./pages/admin/AdminPage.jsx'));
 
+// UI Components
 const SkeletonBlock = ({ className = '' }) => (
   <div className={`animate-pulse rounded-xl border-[3px] border-black bg-white/70 ${className}`} />
 );
@@ -36,52 +33,37 @@ const AppSkeleton = () => (
         <SkeletonBlock className="h-12 w-36 bg-white/80" />
         <SkeletonBlock className="h-10" />
         <SkeletonBlock className="h-10" />
-        <SkeletonBlock className="h-10" />
-        <SkeletonBlock className="h-10" />
       </aside>
-
       <section className="grid content-start gap-4">
         <header className="rounded-2xl border-[4px] border-black bg-white p-4 shadow-[6px_6px_0_#0F172A]">
-          <div className="flex items-center justify-between gap-4">
-            <div className="grid gap-2">
-              <SkeletonBlock className="h-3 w-28 bg-[#BFE8FF]" />
-              <SkeletonBlock className="h-8 w-52 bg-slate-100" />
-            </div>
-            <div className="flex gap-2">
-              <SkeletonBlock className="h-10 w-10 bg-[#FFD600]" />
-              <SkeletonBlock className="h-10 w-28 bg-[#00E676]" />
-            </div>
-          </div>
+          <SkeletonBlock className="h-12 w-full bg-slate-100" />
         </header>
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <SkeletonBlock className="h-28 bg-white" />
-          <SkeletonBlock className="h-28 bg-white" />
-          <SkeletonBlock className="h-28 bg-white" />
-          <SkeletonBlock className="h-28 bg-white" />
-        </div>
-
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <SkeletonBlock className="h-80 bg-white" />
-          <SkeletonBlock className="h-80 bg-white" />
-        </div>
+        <SkeletonBlock className="h-80 bg-white" />
       </section>
     </div>
   </main>
 );
 
 const App = () => {
-  const dispatch = useDispatch()
-  useEffect(()=>{
-    dispatch(checkAuthUser())
-  },[dispatch])
+  const dispatch = useDispatch();
+  const {loading} = useSelector(state=>state.auth)
+
+  useEffect(() => {
+    dispatch(checkAuthUser());
+  }, [dispatch]);
+
+  if(loading){return <AppSkeleton/>}
   return (
     <Suspense fallback={<AppSkeleton />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/signin" element={<ProtectedRoute> <SignInPage /></ProtectedRoute>} />
-        <Route path="/signup" element={<ProtectedRoute ><SignUpPage /></ProtectedRoute>} />
-        <Route path='/reset-password' element={<RecoverPassword/>}/>
+        
+        {/* Auth Routes wrapped in ProtectedRoute to handle "already logged in" logic */}
+        <Route path="/signin" element={<ProtectedRoute><SignInPage /></ProtectedRoute>} />
+        <Route path="/signup" element={<ProtectedRoute><SignUpPage /></ProtectedRoute>} />
+        <Route path="/reset-password" element={<RecoverPassword />} />
+        
+        {/* Dashboard Routes */}
         <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
         <Route
           path="/dashboard/:view"
@@ -91,14 +73,20 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Admin Routes */}
         <Route
           path="/admin"
           element={
-            <AdminRoute>
-              <AdminPage />
-            </AdminRoute>
+            <Suspense fallback={<AppSkeleton />}>
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            </Suspense>
           }
         />
+
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

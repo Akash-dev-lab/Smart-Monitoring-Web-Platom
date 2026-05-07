@@ -62,16 +62,6 @@ const OtpVerificationPage = () => {
         }
     };
 
-    // Naya function: URL change karne ke liye
-    const handleNavigation = () => {
-        if (authType === 'login') {
-            navigate('/signup');
-            dispatch(resetAuthState());
-        } else {
-            navigate('/signin');
-            dispatch(resetAuthState());
-        }
-    };
 
     const handleResendOtp = async () => {
       try{
@@ -150,13 +140,7 @@ const OtpVerificationPage = () => {
               >
                 Resend OTP
               </button>
-              <button
-                type="button"
-                onClick={handleNavigation}
-                className="uppercase italic text-black/60 underline decoration-[3px] underline-offset-4"
-              >
-                {authType === 'login' ? 'Use signup instead' : 'Back to sign in'}
-              </button>
+             
             </div>
           </div>
         </AuthPanel>

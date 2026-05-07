@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AuthLayout from './AuthLayout';
 import AuthPanel from './AuthPanel';
 import FormField from './FormField';
 import { loginUser, setUserEmail } from '../../store/authSlice';
-import { useDispatch } from 'react-redux';
+
 import SocialLogin from './SocialLogin';
 import { toast } from 'react-toastify';
+import OtpVerificationPage from './OtpVerificationPage';
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -16,14 +17,14 @@ const SignInPage = () => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-const dispatch = useDispatch()
+  const { isOtpRequired } = useSelector(state => state.auth);
 
 
   const params = new URLSearchParams(location.search);
   const auth = params.get('auth');
   const oauthError = params.get('error') || '';
   const displayError = error || oauthError;
-
+console.log(error)
   useEffect(() => {
     if (oauthError) return;
     if (auth === 'success') {
@@ -65,7 +66,9 @@ const dispatch = useDispatch()
       console.error("Caught error:", err);
 
       if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+        console.log(err.errors[0].message) 
         setError(err.errors[0].message);
+        toast.error(err.errors[0].message)
       } 
 
       else if (err?.message) {
@@ -80,6 +83,12 @@ const dispatch = useDispatch()
     }
   };
 
+  
+
+if (isOtpRequired) {
+    return <OtpVerificationPage />;
+}
+
   return (
     <AuthLayout
       eyebrow="Operator login"
@@ -93,9 +102,9 @@ const dispatch = useDispatch()
         icon={ShieldCheck}
         onSubmit={handleSubmit}
         title="Sign In"
-        mode="signin"
+        
       >
-        <SocialLogin/>
+     <SocialLogin mode="signin" />
         <div className="grid gap-4">
           {displayError && (
             <div className="rounded border-2 border-red-500 bg-red-50 p-3 text-sm font-bold text-red-700">
@@ -125,7 +134,9 @@ const dispatch = useDispatch()
           <button
             type="submit"
             disabled={isLoading}
-            className="group mt-1 inline-flex h-12 min-w-0 items-center justify-between gap-3 border-[3px] border-black bg-[#00E676] px-3 text-sm font-black uppercase italic shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed sm:mt-2 sm:h-13 sm:border-[4px] sm:px-4 sm:text-base sm:shadow-[6px_6px_0_#000]"
+            className="group mt-1 inline-flex h-12 min-w-0 items-center justify-between gap-3 border-[3px] border-black bg-[#00E676] px-3 text-sm
+             font-black uppercase italic shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-0.5
+             cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed sm:mt-2 sm:h-13 sm:border-[4px] sm:px-4 sm:text-base sm:shadow-[6px_6px_0_#000]"
           >
             <span className="truncate">{isLoading ? 'Signing in...' : 'Sign in'}</span>
             <ArrowRight size={20} strokeWidth={3} className="transition-transform group-hover:translate-x-1" />

@@ -75,7 +75,7 @@ const AlertsSection = ({ alertsPayload, isLoading, error, monitors, onRefresh })
           <div className="grid gap-3">
             {filtered.slice(0, 60).map((a, idx) => (
               <div
-                key={a._id || a.id || `${a.monitorId}-${idx}`}
+                key={a?._id || a?.id || `${a?.monitorId}-${idx}`}
                 className="rounded-xl border-2 border-black bg-[#FDFBF7] p-4"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
