@@ -6,6 +6,7 @@ import monitorRoutes from "./modules/monitor/monitor.routes.js";
 import aiRoutes from "./modules/ai/ai.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import incidentRoutes from "./modules/incident/incident.routes.js";
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use("/logs", logRoutes);
 app.use("/ai", aiRoutes);
 app.use("/monitors", monitorRoutes);
 app.use("/dashboard", dashboardRoutes);
+app.use("/incidents", incidentRoutes);
 
 // Health check endpoint
 app.get("/", (req, res) => {
