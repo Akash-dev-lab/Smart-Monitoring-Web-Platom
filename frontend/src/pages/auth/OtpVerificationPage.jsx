@@ -27,7 +27,6 @@ const OtpVerificationPage = () => {
 
         const formData = new FormData(event.target);
         const otp = formData.get('otp')?.trim();
-        console.log("Verifying with Email & OTP:", userEmail, otp);
 
         try {
             const payload = {
@@ -38,7 +37,7 @@ const OtpVerificationPage = () => {
             const actionToCall = authType === 'login' ? verifyLoginOtp : verifyRegisterOtp;
 
             const response = await dispatch(actionToCall(payload)).unwrap();
-            console.log('Account verified and created successfully!', response);
+    
 
             if (response?.data?.user) {
                 setCurrentUser(response?.data?.user);

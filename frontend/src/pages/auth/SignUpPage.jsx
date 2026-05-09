@@ -44,8 +44,6 @@ const SignUpPage = () => {
       toast.success(response?.message || "OTP sent to your email");
       dispatch(setUserEmail(email));
       
-      // Yahan aap OTP page par navigate kar sakte hain agar backend setup hai
-      // navigate('/verify-otp'); 
 
     } catch (err) {
       console.error("Caught error:", err);

@@ -26,7 +26,7 @@ html,
 
 body {
   margin: 0;
-  background-color: #0A0C10;
+  background-color: #1E6BFF;
   overflow-x: hidden;
 }
 
@@ -44,7 +44,7 @@ body {
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
-  border-right: 3px solid black; /* The typing cursor */
+  border-right: 3px solid black; 
   animation: 
     typing 3s steps(20, end) infinite,
     blink .75s step-end infinite;
@@ -60,7 +60,7 @@ body {
   animation: dot-pulse 1.5s infinite ease-in-out;
 }
 
-/* Scan line for the status bar */
+
 @keyframes scan {
   0% { left: -100%; }
   100% { left: 100%; }
@@ -72,4 +72,32 @@ body {
   width: 50%;
   background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3), transparent);
   animation: scan 2s linear infinite;
+}
+
+::-webkit-scrollbar {
+  width: 6px; 
+  height: 6px;
+}
+
+
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+
+::-webkit-scrollbar-thumb {
+  background: #000000; 
+  border-radius: 20px; 
+  border: 1px solid transparent; 
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1E6BFF; 
+}
+
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #000000 transparent;
 }

@@ -20,7 +20,7 @@ const SkeletonBlock = ({ className = '' }) => (
   <div className={`animate-pulse rounded-xl border-[3px] border-black bg-white/70 ${className}`} />
 );
 
-const AppSkeleton = () => (
+export const AppSkeleton = () => (
   <main
     className="min-h-screen bg-[#1E6BFF] p-4 font-sans text-slate-950 sm:p-6"
     style={{
@@ -46,19 +46,18 @@ const AppSkeleton = () => (
 
 const App = () => {
   const dispatch = useDispatch();
-  const {loading} = useSelector(state=>state.auth)
+
 
   useEffect(() => {
     dispatch(checkAuthUser());
   }, [dispatch]);
 
-  if(loading){return <AppSkeleton/>}
   return (
     <Suspense fallback={<AppSkeleton />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         
-        {/* Auth Routes wrapped in ProtectedRoute to handle "already logged in" logic */}
+
         <Route path="/signin" element={<ProtectedRoute><SignInPage /></ProtectedRoute>} />
         <Route path="/signup" element={<ProtectedRoute><SignUpPage /></ProtectedRoute>} />
         <Route path="/reset-password" element={<RecoverPassword />} />

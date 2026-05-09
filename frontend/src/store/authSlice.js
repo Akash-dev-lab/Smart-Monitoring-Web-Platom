@@ -6,7 +6,7 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData, { rejectWithValue }) => {
     try {
-      console.log("Attempting to register user with data:", userData);
+
       const response = await axiosInstance.post('/auth/register', userData);
       return response.data;
     } catch (error) {
@@ -37,10 +37,10 @@ export const verifyRegisterOtp = createAsyncThunk(
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (userData, { rejectWithValue }) => {
-    console.log("Attempting to log in with credentials:", userData);
+
     try {
       const response = await axiosInstance.post('/auth/login', userData);
-      console.log(response.data);
+ 
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -54,7 +54,7 @@ export const loginUser = createAsyncThunk(
 export const verifyLoginOtp = createAsyncThunk(
   'auth/verifyLoginOtp',
   async (verificationData, { rejectWithValue }) => {
-    console.log("Attempting to verify login OTP with data:", verificationData);
+
     try {
       const response = await axiosInstance.post('/auth/verify-login-otp', verificationData);
       return response.data;
@@ -70,10 +70,10 @@ export const verifyLoginOtp = createAsyncThunk(
 export const resendOtp = createAsyncThunk(
   'auth/resendOtp',
   async (data, { rejectWithValue }) => {
-    console.log("Attempting to resend OTP with data:", data);
+
     try {
       const response = await axiosInstance.post('/auth/resend-otp', data);
-      console.log(response);
+   
       return response.data;
     } catch (error) {
       console.error("Error during resend OTP API call:", error);
@@ -116,10 +116,10 @@ export const checkAuthUser = createAsyncThunk(
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (data, { rejectWithValue }) => {
-    console.log(data);
+   
     try {
       const response = await axiosInstance.post('/auth/forgot-password', data);
-      console.log(response);
+
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -133,10 +133,10 @@ export const forgotPassword = createAsyncThunk(
 export const verifyForgotPasswordOtp = createAsyncThunk(
   'auth/verifyForgotPasswordOtp',
   async (data, { rejectWithValue }) => {
-    console.log(data);
+  
     try {
       const response = await axiosInstance.post('/auth/verify-forgot-password-otp', data);
-      console.log(response);
+    
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -150,10 +150,10 @@ export const verifyForgotPasswordOtp = createAsyncThunk(
 export const resetPassword = createAsyncThunk(
   'auth/resetPassword',
   async (data, { rejectWithValue }) => {
-    console.log(data);
+   
     try {
       const response = await axiosInstance.post('/auth/reset-password', data);
-      console.log(response);
+    
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -179,6 +179,7 @@ export const refreshToken = createAsyncThunk(
 const initialState = {
   user: null,
   isAuthenticated: false,
+  isInitialized: false,
   loading: true,
   error: null,
   isOtpRequired: false, 
@@ -301,12 +302,14 @@ const authSlice = createSlice({
       .addCase(checkAuthUser.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
+        state.isInitialized = true
         state.user = action.payload?.user || action.payload;
       })
       .addCase(checkAuthUser.rejected, (state) => {
         state.loading = false;
         state.user = null;
         state.isAuthenticated = false;
+        state.isInitialized = true
       })
 
       // Refresh Token Cases
