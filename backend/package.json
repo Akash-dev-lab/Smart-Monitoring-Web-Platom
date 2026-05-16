@@ -7,8 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "npx nodemon server.js",
-    "build": "echo No build step required",
-    "postinstall": "npm install"
+    "build": "echo No build step required"
   },
   "keywords": [],
   "author": "",
