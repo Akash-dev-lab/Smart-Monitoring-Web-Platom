@@ -24,9 +24,9 @@ const RecoverPassword = () => {
     event.preventDefault();
     setError('');
     setIsLoading(true);
-console.log(step)
+
     try {
-      const formData = new FormData(event.target);
+      const formData = new FormData(event.currentTarget);
 
       if (step === 1) {
         const enteredEmail = formData.get('email')?.trim().toLowerCase();
@@ -34,15 +34,14 @@ console.log(step)
 
        
         const response = await dispatch(forgotPassword({ email: enteredEmail })).unwrap();// await
-        console.log(response)
+     
         toast.success(response?.message || "Otp sent to your email")
 
         setStep(2);
+     
 
       } else if (step === 2) {
         const enteredOtp = formData.get('otp')?.trim();
-
-        console.log("ffff",enteredOtp, email)
 
        
         const response = await dispatch(verifyForgotPasswordOtp({ email, otp: enteredOtp })).unwrap();
@@ -53,7 +52,7 @@ console.log(step)
       } else if (step === 3) {
         const newPassword = formData.get('password')?.trim();
         const confirmPassword = formData.get('confirmPassword')?.trim();
-        console.log(newPassword, confirmPassword)
+        
 
         if (newPassword !== confirmPassword) {
           setError('Passwords do not match.');

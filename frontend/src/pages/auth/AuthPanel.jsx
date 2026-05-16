@@ -25,7 +25,7 @@ navigate(footerHref)
         <span className="text-[10px] font-black uppercase italic tracking-[0.18em]">Secure_Window</span>
       </div>
 
-      <div className="bg-[#FDFBF7] p-4 sm:p-6">
+      <div className="bg-[#FDFBF7] p-4 sm:p-6 ">
         <div className="mb-5 hidden items-center gap-3 sm:flex">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border-[3px] border-black bg-[#00E676] shadow-[4px_4px_0_#000]">
             <Icon size={22} strokeWidth={3} />
@@ -35,7 +35,7 @@ navigate(footerHref)
 
         
 
-        <div className="rounded-lg border-[3px] border-black bg-white p-3 sm:p-4">{children}</div>
+        <div className="rounded-lg border-[3px] border-black bg-white p-3 sm:p-4 ">{children}</div>
       </div>
 
       <div className="border-t-[3px] border-black bg-white p-3 text-center text-sm font-black sm:border-t-[4px] sm:p-4">

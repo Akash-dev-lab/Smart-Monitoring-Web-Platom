@@ -156,7 +156,8 @@ const OverviewSection = ({ activeCount, analyticsByMonitorId = {}, averageInterv
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {monitors.slice(0, 4).map((monitor) => (
-            <div key={monitor.id} className="min-w-0 rounded-xl border-[3px] border-black bg-[#FDFBF7] p-4">
+            <div
+             key={monitor.id} className="min-w-0 rounded-xl border-[3px] border-black bg-[#FDFBF7] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-black text-slate-950">{monitor.name}</p>

@@ -17,7 +17,7 @@ export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, o
     try {
       setIsLoggingOut(true);
      const response = await  dispatch( logoutUser());
-     console.log(response)
+    
       setCurrentUser(null);
       navigate('/signin');
     } catch (error) {
@@ -30,6 +30,7 @@ export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, o
     }
   };
 
+
   return (
     <div className="flex h-full flex-col">
       <div className={`flex items-center ${compact ? 'justify-center' : 'justify-between gap-3'}`}>
@@ -39,11 +40,11 @@ export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, o
           className={`flex min-w-0 items-center gap-3 ${compact ? 'justify-center' : 'cursor-default'}`}
           aria-label={compact ? 'Open sidebar' : 'Drishyam Monitor OS'}
         >
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-[3px] border-black bg-[#FFD600] font-black italic text-black shadow-[4px_4px_0_#0F172A]">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-[3px] border-black bg-[#FFD600] font-black italic text-black shadow-[4px_4px_0_#0F172A] cursor-pointer active:shadow-[1px_2px_0_#0F172A] active:scale-95">
             D
           </span>
           {!compact && (
-            <span className="min-w-0 text-black">
+            <span className="min-w-0 text-black line-clamp-1">
               <span className="block truncate text-lg font-black uppercase italic leading-none">Drishyam</span>
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-black/55">Monitor OS</span>
             </span>
@@ -51,7 +52,7 @@ export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, o
         </button>
         {!compact && (
           <button
-            className="grid h-10 w-10 place-items-center rounded-xl border-[3px] border-black bg-white text-black shadow-[3px_3px_0_#0F172A]"
+            className="grid h-10 w-10 place-items-center rounded-xl border-[3px] border-black bg-white text-black shadow-[3px_3px_0_#0F172A] cursor-pointer active:shadow-[1px_2px_0_#0F172A] active:scale-95"
             onClick={onClose}
             aria-label="Close sidebar"
           >
@@ -66,7 +67,7 @@ export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, o
             key={id}
             type="button"
             onClick={() => onViewChange(id)}
-            className={`flex h-12 items-center rounded-2xl border-[3px] border-black font-black ${
+            className={`flex h-12 items-center rounded-2xl border-[3px] text-nowrap line-clamp-1 border-black font-black cursor-pointer ${
               compact ? 'justify-center px-0' : 'gap-3 px-3'
             } ${
               activeView === id
@@ -88,19 +89,20 @@ export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, o
           disabled={isLoggingOut}
           className={`flex h-12 w-full items-center rounded-2xl border-[3px] border-black font-black ${
             compact ? 'justify-center px-0' : 'gap-3 px-3'
-          } bg-red-500 text-white shadow-[4px_4px_0_#0F172A] hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60`}
+          } bg-red-500 text-white shadow-[4px_4px_0_#0F172A] hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60 line-clamp-1`}
           title="Logout"
+
         >
           <LogOut size={19} strokeWidth={3} />
           {!compact && <span className="text-sm">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
         </button>
 
         <div className={`rounded-2xl border-[3px] border-black bg-[#FDFBF7] p-4 text-black ${compact ? 'hidden' : 'block'}`}>
-          <div className="flex items-center gap-2 text-sm font-black">
+          <div className="flex items-center gap-2 text-sm font-black text-nowrap line-clamp-1">
             <ShieldCheck size={18} className="text-[#1E6BFF]" />
             Monitors synced
           </div>
-          <p className="mt-2 text-sm leading-6 text-black/60">
+          <p className="mt-2 text-sm leading-6 text-black/60 line-clamp-3 ">
             Monitor records load from the backend and actions update the same source.
           </p>
         </div>

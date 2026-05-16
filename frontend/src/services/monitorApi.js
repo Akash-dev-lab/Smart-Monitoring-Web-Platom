@@ -32,15 +32,12 @@ export const mapMonitor = (monitor) => {
   };
 };
 
-/**
- * Fetch all monitors from backend
- * GET /monitors
- */
+
 export const getMonitors = async () => {
   try {
   
     const { data } = await axiosInstance.get('/monitors');
-    console.log(data)
+ 
     const monitors = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
 
     return monitors.map(mapMonitor).filter(Boolean);

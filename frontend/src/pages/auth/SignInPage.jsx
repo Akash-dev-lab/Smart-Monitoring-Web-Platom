@@ -24,7 +24,7 @@ const SignInPage = () => {
   const auth = params.get('auth');
   const oauthError = params.get('error') || '';
   const displayError = error || oauthError;
-console.log(error)
+
   useEffect(() => {
     if (oauthError) return;
     if (auth === 'success') {
@@ -66,7 +66,6 @@ console.log(error)
       console.error("Caught error:", err);
 
       if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
-        console.log(err.errors[0].message) 
         setError(err.errors[0].message);
         toast.error(err.errors[0].message)
       } 

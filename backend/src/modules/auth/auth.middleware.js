@@ -20,21 +20,21 @@ const isTokenBlacklisted = async (jti) => {
 const authenticate = async (req, res, next) => {
   try {
     const token = getTokenFromRequest(req);
-    console.log(token, "token")
+   
     
     if (!token) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
     const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    console.log(payload,"payload")
+   
     const blacklisted = await isTokenBlacklisted(payload.jti);
     if (blacklisted) {
       return res.status(401).json({ message: 'Session expired' });
     }
 
     const user = await User.findById(payload.sub).lean();
-    console.log("user",user)
+    
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Account is inactive' });
     }

@@ -49,7 +49,7 @@ const AuthLayout = ({ children, eyebrow, title, subtitle }) => {
                 {eyebrow}
               </p>
               <h1
-                className="max-w-[11ch] text-[clamp(3rem,11vw,7.4rem)] font-black uppercase italic leading-[0.82] text-[#FFD600] drop-shadow-[4px_4px_0_black]"
+                className="max-w-[11ch] text-[clamp(3rem,7vw,7.4rem)] font-black uppercase italic leading-[0.82] text-[#FFD600]  drop-shadow-[4px_4px_0_black]"
                 style={{ WebkitTextStroke: '2px black' }}
               >
                 {title}
