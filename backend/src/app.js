@@ -13,7 +13,7 @@ import incidentRoutes from "./modules/incident/incident.routes.js";
 const app = express();
 
 // CORS Configuration
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173/")
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173/")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
