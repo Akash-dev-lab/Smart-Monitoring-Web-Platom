@@ -3,7 +3,7 @@ const config = {
   port: Number(process.env.PORT) || 4000,
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
   backendUrl: process.env.BACKEND_URL || "http://localhost:4000",
-  mongoUri: process.env.MONGO_URI || "mongodb://localhost:27017/drishya-auth",
+  mongoUri: process.env.MONGO_URI || "mongodb://localhost:27017/drishyam-auth",
   redis: {
     host: process.env.REDIS_HOST || "127.0.0.1",
     port: Number(process.env.REDIS_PORT) || 6379,
