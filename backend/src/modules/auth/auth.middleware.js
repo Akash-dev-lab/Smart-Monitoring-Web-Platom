@@ -1,26 +1,65 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
+import redis from './db/redis.js';
+import User from './models/user.model.js';
+import { logger } from './utils/logger.js';
 
-export const protect = (req, res, next) => {
+const getTokenFromRequest = (req) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.slice(7).trim();
+  }
+  return req.cookies?.access_token || null;
+};
+
+const isTokenBlacklisted = async (jti) => {
+  if (!jti) return false;
+  const blacklisted = await redis.get(`bl:${jti}`);
+  return Boolean(blacklisted);
+};
+
+const authenticate = async (req, res, next) => {
   try {
-    const token = req.cookies.accessToken;
-
+    const token = getTokenFromRequest(req);
+    console.log(token, "token")
+    
     if (!token) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    console.log(payload,"payload")
+    const blacklisted = await isTokenBlacklisted(payload.jti);
+    if (blacklisted) {
+      return res.status(401).json({ message: 'Session expired' });
+    }
 
-    req.user = decoded; // { userId, role }
+    const user = await User.findById(payload.sub).lean();
+    console.log("user",user)
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'Account is inactive' });
+    }
 
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: "Invalid token" });
+    req.user = user;
+    req.accessTokenJti = payload.jti;
+    return next();
+  } catch (error) {
+    logger.warn('Access token verification failed');
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
 };
 
-export const isAdmin = (req, res, next) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ error: "Admin access only" });
+const isAdmin = (req, res, next) => {
+  if (!req.user?.role || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access only' });
   }
-  next();
+  return next();
+};
+
+const protect = authenticate;
+
+export {
+  authenticate,
+  protect,
+  isTokenBlacklisted,
+  isAdmin,
 };

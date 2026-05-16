@@ -3,8 +3,9 @@ import { createMonitor, getAllMonitors, updateMonitorById, deleteMonitorById } f
 export const createMonitorController = async (req, res) => {
   try {
     const { url, method, interval } = req.body;
-
-    const monitor = await createMonitor({ url, method, interval, userId: req.user.userId });
+    // Keeping your logic: using req.user._id directly
+    const monitor = await createMonitor({ url, method, interval, userId: req.user._id });
+    
     res.status(201).json(monitor);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -13,7 +14,7 @@ export const createMonitorController = async (req, res) => {
 
 export const getAllMonitorsController = async (req, res) => {
   try {
-    const monitors = await getAllMonitors(req.user.userId);
+    const monitors = await getAllMonitors(req.user._id);
 
     res.json({
       success: true,
@@ -25,12 +26,10 @@ export const getAllMonitorsController = async (req, res) => {
   }
 };
 
-// 🔥 UPDATE
 export const updateMonitorController = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const updated = await updateMonitorById(id, req.user.userId, req.body);
+    const updated = await updateMonitorById(id, req.user._id, req.body);
 
     if (!updated) {
       return res.status(404).json({ error: "Monitor not found or unauthorized" });
@@ -42,12 +41,10 @@ export const updateMonitorController = async (req, res) => {
   }
 };
 
-// 🔥 DELETE
 export const deleteMonitorController = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const deleted = await deleteMonitorById(id, req.user.userId);
+    const deleted = await deleteMonitorById(id, req.user._id);
 
     if (!deleted) {
       return res.status(404).json({ error: "Monitor not found or unauthorized" });

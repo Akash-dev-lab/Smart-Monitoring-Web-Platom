@@ -1,11 +1,14 @@
 import { LogOut, ShieldCheck, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { logout, setCurrentUser } from '../../../services/authApi';
+import { setCurrentUser } from '../../../services/authApi';
 import { navItems } from '../dashboardData';
+import { logoutUser } from '../../../store/authSlice';
+import { useDispatch } from 'react-redux';
 
 export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, onViewChange }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -13,7 +16,8 @@ export const SidebarContent = ({ activeView, compact = false, onClose, onOpen, o
 
     try {
       setIsLoggingOut(true);
-      await logout();
+     const response = await  dispatch( logoutUser());
+     console.log(response)
       setCurrentUser(null);
       navigate('/signin');
     } catch (error) {

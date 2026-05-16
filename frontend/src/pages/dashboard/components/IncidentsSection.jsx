@@ -301,6 +301,9 @@ const AIInsightPanel = ({ insight, incident }) => {
 
   // Get suggestions from formatted insight (already normalized to array)
   const suggestions = insight?.suggestions || [];
+  const predictedIssues = insight?.predictedIssues || [];
+  const resolutionSteps = insight?.resolutionSteps || [];
+  const signals = insight?.signals || [];
 
   return (
     <div className="rounded-xl border-2 border-black bg-[#FDFBF7] p-4">
@@ -329,8 +332,22 @@ const AIInsightPanel = ({ insight, incident }) => {
       )}
 
       <p className="mt-4 max-w-3xl text-sm font-bold leading-6 text-slate-700">
-        {insight?.reason || 'AI analysis is waiting for enough failure context.'}
+        {insight?.headline || insight?.reason || 'AI analysis is waiting for enough failure context.'}
       </p>
+
+      {insight?.explanation && (
+        <div className="mt-3 rounded-lg border-2 border-black bg-white p-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-500">Plain explanation</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-700">{insight.explanation}</p>
+        </div>
+      )}
+
+      {insight?.reason && (
+        <div className="mt-3 rounded-lg border-2 border-black bg-[#FFE2D1] p-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-500">Most likely cause</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-700">{insight.reason}</p>
+        </div>
+      )}
 
       {suggestions.length > 0 && (
         <div className="mt-3 grid gap-2">
@@ -338,6 +355,55 @@ const AIInsightPanel = ({ insight, incident }) => {
             <div key={`${suggestion}-${index}`} className="flex items-start gap-2 rounded-lg border-2 border-black bg-[#FFD600] p-2">
               <Lightbulb className="mt-0.5 shrink-0 text-black" size={16} strokeWidth={3} />
               <p className="text-sm font-black leading-6 text-black">{suggestion}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {resolutionSteps.length > 0 && (
+        <div className="mt-4 rounded-lg border-2 border-black bg-white p-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-500">How to solve</p>
+          <div className="mt-3 grid gap-2">
+            {resolutionSteps.map((step, index) => (
+              <div key={`${step.step}-${index}`} className="rounded-lg border border-slate-200 bg-[#FDFBF7] p-3">
+                <p className="text-sm font-black text-slate-950">{index + 1}. {step.step}</p>
+                <p className="mt-1 text-sm font-bold leading-6 text-slate-600">{step.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {predictedIssues.length > 0 && (
+        <div className="mt-4 rounded-lg border-2 border-black bg-[#E3F6FF] p-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-500">What could happen next</p>
+          <div className="mt-3 grid gap-2">
+            {predictedIssues.map((prediction, index) => (
+              <div key={`${prediction.issue}-${index}`} className="rounded-lg border border-black bg-white p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-black text-slate-950">{prediction.issue}</p>
+                  <span className="rounded-full border border-black bg-[#BFE8FF] px-2 py-1 text-[10px] font-black uppercase text-slate-700">
+                    {Math.round((prediction.probability || 0) * 100)}% chance
+                  </span>
+                </div>
+                <p className="mt-2 text-sm font-bold leading-6 text-slate-600">{prediction.why}</p>
+                <p className="mt-2 text-xs font-black uppercase tracking-[0.08em] text-slate-500">
+                  {prediction.timeframe}
+                </p>
+                <p className="mt-2 text-sm font-bold leading-6 text-slate-700">{prediction.prevention}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {signals.length > 0 && (
+        <div className="mt-4 grid gap-2 md:grid-cols-3">
+          {signals.map((signal, index) => (
+            <div key={`${signal.label}-${index}`} className="rounded-lg border-2 border-black bg-white p-3">
+              <p className="text-[11px] font-black uppercase tracking-[0.08em] text-slate-500">{signal.label}</p>
+              <p className="mt-1 text-sm font-black text-slate-950">{signal.value}</p>
+              <p className="mt-2 text-sm font-bold leading-6 text-slate-600">{signal.impact}</p>
             </div>
           ))}
         </div>

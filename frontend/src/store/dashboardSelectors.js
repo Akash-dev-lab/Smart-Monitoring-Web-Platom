@@ -10,6 +10,8 @@ export const selectIncidentsByMonitorId = (state) => state.dashboard.incidentsBy
 
 export const selectAIInsightsByMonitorId = (state) => state.dashboard.aiInsightsByMonitorId;
 
+export const selectAlerts = (state) => state.dashboard.alerts;
+
 export const selectDashboardSummary = (state) => state.dashboard.dashboardSummary;
 
 export const selectDashboardCounts = createSelector([selectMonitors], (monitors) => {

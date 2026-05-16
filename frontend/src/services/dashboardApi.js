@@ -36,6 +36,18 @@ const formatAIInsight = (insight) => {
 
   return {
     ...insight,
+    confidence: typeof insight.confidence === 'number' ? insight.confidence : 0,
+    explanation: insight.explanation || insight.reason || '',
+    headline: insight.headline || '',
+    predictedIssues: Array.isArray(insight.predictedIssues)
+      ? insight.predictedIssues
+      : Array.isArray(insight.predictions)
+        ? insight.predictions
+        : [],
+    resolutionSteps: Array.isArray(insight.resolutionSteps) ? insight.resolutionSteps : [],
+    severity: insight.severity || 'low',
+    signals: Array.isArray(insight.signals) ? insight.signals : [],
+    solutionSummary: insight.solutionSummary || '',
     suggestions: cleanedSuggestions,
     isCritical: insight.severity === 'critical' || insight.priority === 'high',
   };

@@ -12,23 +12,27 @@ export const getMonitorAnalytics = async (monitorId, range = '24h') => {
       params: { range },
     });
 
-    // Ensure data structure is chart-safe
     const analytics = data?.data || data || {};
 
     return {
-      timestamps: Array.isArray(analytics.timestamps) ? analytics.timestamps : [],
-      responseTimes: Array.isArray(analytics.responseTimes) ? analytics.responseTimes : [],
-      statusCodes: Array.isArray(analytics.statusCodes) ? analytics.statusCodes : [],
-      uptime: typeof analytics.uptime === 'number' ? analytics.uptime : 0,
+      avgLatency: Number(analytics.avgLatency || 0),
+      failures: Number(analytics.failures || 0),
+      status: analytics.status || 'NO_LOGS',
+      success: Number(analytics.success || 0),
+      totalChecks: Number(analytics.totalChecks || 0),
+      trend: Array.isArray(analytics.trend) ? analytics.trend : [],
+      uptime: Number(analytics.uptime || 0),
     };
   } catch (error) {
     console.warn(`Failed to fetch analytics for monitor ${monitorId}:`, error.message);
-    
-    // Return empty chart-safe structure
+
     return {
-      timestamps: [],
-      responseTimes: [],
-      statusCodes: [],
+      avgLatency: 0,
+      failures: 0,
+      status: 'NO_LOGS',
+      success: 0,
+      totalChecks: 0,
+      trend: [],
       uptime: 0,
     };
   }

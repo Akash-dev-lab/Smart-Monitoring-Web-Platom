@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useSelector } from 'react-redux';
+
 
 const AuthLayout = ({ children, eyebrow, title, subtitle }) => {
+  
+  
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#1E6BFF] px-3 py-4 font-mono text-black sm:px-5 sm:py-6 lg:px-8">
       <div

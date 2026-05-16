@@ -1,15 +1,27 @@
-import { Navigate } from 'react-router-dom';
-import { getCurrentUser } from '../../services/authApi';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const ProtectedRoute = ({ children }) => {
-  const user = getCurrentUser();
+  const location = useLocation();
+  // Redux state se auth status nikalna
+  const { user, isAuthenticated, loading } = useSelector(state => state.auth);
 
-  if (!user) {
-    return <Navigate to="/signin" replace />;
+  // Agar abhi check ho raha hai (loading), toh blank screen ya spinner dikhayein
+  if (loading) {
+    return null; 
+  }
+
+  // Agar user authenticated nahi hai aur dashboard access kar raha hai -> Redirect to SignIn
+  if (!isAuthenticated && location.pathname.startsWith("/dashboard")) {
+    return <Navigate to="/signin" state={{ from: location }} replace />;
+  }
+
+  // Agar user authenticated hai aur wapas login/signup par jana chahe -> Redirect to Dashboard
+  if (isAuthenticated && (location.pathname === "/signin" || location.pathname === "/signup" || location.pathname === "/")) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 };
 
 export default ProtectedRoute;
-

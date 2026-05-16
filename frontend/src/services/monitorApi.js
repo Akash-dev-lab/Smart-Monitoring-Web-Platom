@@ -38,12 +38,14 @@ export const mapMonitor = (monitor) => {
  */
 export const getMonitors = async () => {
   try {
+  
     const { data } = await axiosInstance.get('/monitors');
+    console.log(data)
     const monitors = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
 
     return monitors.map(mapMonitor).filter(Boolean);
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to fetch monitors');
+    throw new Error(error.response?.data?.error || 'Failed to fetch monitors', { cause: error });
   }
 };
 
@@ -75,7 +77,7 @@ export const createMonitor = async ({ url, method, interval, active }) => {
 
     return mapMonitor(createdMonitor);
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to create monitor');
+    throw new Error(error.response?.data?.error || 'Failed to create monitor', { cause: error });
   }
 };
 
@@ -94,7 +96,7 @@ export const updateMonitor = async (id, data) => {
 
     return mapMonitor(payload?.data || payload);
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to update monitor');
+    throw new Error(error.response?.data?.error || 'Failed to update monitor', { cause: error });
   }
 };
 
@@ -106,6 +108,6 @@ export const deleteMonitor = async (id) => {
   try {
     await axiosInstance.delete(`/monitors/${id}`);
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to delete monitor');
+    throw new Error(error.response?.data?.error || 'Failed to delete monitor', { cause: error });
   }
 };

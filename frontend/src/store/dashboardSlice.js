@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getDashboardSummary, getIncidentDetails } from '../services/dashboardApi';
 import { getMonitorAnalytics } from '../services/logApi';
+import { getAlerts } from '../services/alertApi';
 import {
   createMonitor,
   deleteMonitor,
@@ -14,6 +15,7 @@ import {
 export const fetchMonitors = createAsyncThunk(
   'dashboard/fetchMonitors',
   async (_, { rejectWithValue }) => {
+    
     try {
       return await getMonitors();
     } catch (error) {
@@ -119,6 +121,14 @@ export const fetchIncidentDetails = createAsyncThunk(
   },
 );
 
+export const fetchAlerts = createAsyncThunk('dashboard/fetchAlerts', async (_, { rejectWithValue }) => {
+  try {
+    return await getAlerts();
+  } catch (error) {
+    return rejectWithValue(error.message);
+  }
+});
+
 /**
  * Create a new monitor
  */
@@ -185,6 +195,9 @@ const initialState = {
   aiInsightsByMonitorId: {},
   analyticsByMonitorId: {},
   analyticsError: '',
+  alerts: null,
+  alertsError: '',
+  isLoadingAlerts: false,
   dashboardSummary: null,
   dashboardSummaryError: '',
   deletingMonitorId: null,
@@ -209,6 +222,18 @@ const dashboardSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchAlerts.pending, (state) => {
+        state.isLoadingAlerts = true;
+        state.alertsError = '';
+      })
+      .addCase(fetchAlerts.fulfilled, (state, action) => {
+        state.isLoadingAlerts = false;
+        state.alerts = action.payload;
+      })
+      .addCase(fetchAlerts.rejected, (state, action) => {
+        state.isLoadingAlerts = false;
+        state.alertsError = action.payload || action.error.message || 'Unable to load alerts';
+      })
       .addCase(fetchMonitors.pending, (state) => {
         state.isLoadingMonitors = true;
         state.monitorError = '';

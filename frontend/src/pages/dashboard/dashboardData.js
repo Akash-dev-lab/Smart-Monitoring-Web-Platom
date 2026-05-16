@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Globe2,
   LayoutDashboard,
+  Siren,
   Settings,
 } from 'lucide-react';
 
@@ -10,6 +11,7 @@ export const navItems = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'monitors', label: 'Monitors', icon: Activity },
   { id: 'incidents', label: 'Incidents', icon: AlertTriangle },
+  { id: 'alerts', label: 'Alerts', icon: Siren },
   { id: 'status', label: 'Status Pages', icon: Globe2 },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];

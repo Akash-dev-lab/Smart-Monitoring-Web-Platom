@@ -1,6 +1,7 @@
 import { getOpenIncident, createIncident, resolveIncident } from "./incident.service.js";
 import { triggerAlert } from "../alert/alert.service.js";
 import { processIncident } from "./incident.processor.ai.js";
+import { emitIncidentCreated, emitIncidentResolved } from "../../sockets/socket.js";
 
 const FAILURE_THRESHOLD = 3;
 
@@ -20,6 +21,9 @@ export const handleFailure = async (monitorId) => {
       console.log("🚨 Incident Created");
       const newIncident = await createIncident({ monitorId, failCount: count });
 
+      // 📡 Real-time incident notification
+      emitIncidentCreated(monitorId, newIncident);
+
       // 🧠 AI TRIGGER (NEW)
       await processIncident(newIncident);
 
@@ -36,7 +40,12 @@ export const handleSuccess = async (monitorId) => {
 
   if (hadFailure && hadFailure >= FAILURE_THRESHOLD) {
     console.log("✅ Incident Resolved");
-    await resolveIncident(monitorId);
+    const resolved = await resolveIncident(monitorId);
+
+    // 📡 Real-time resolution notification
+    if (resolved) {
+      emitIncidentResolved(monitorId, resolved);
+    }
   }
 
   // reset counter
