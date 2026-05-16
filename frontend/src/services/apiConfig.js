@@ -1,5 +1,5 @@
 
-const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://smart-monitoring-web-platform-1.onrender.com/';
 
 if (!rawApiBaseUrl) {
   throw new Error('Missing VITE_API_BASE_URL');
